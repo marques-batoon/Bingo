@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import Button from '../components/Button';
+import Game from './Game';
 import Lobby from './Lobby';
 import { ensureAuth, firebaseConfigured } from '../lib/firebase';
 import { randomPlayerName } from '../lib/names';
@@ -103,9 +104,11 @@ export default function RoomScreen() {
 
   if (room.meta.status === 'lobby') return <Lobby code={code} room={room} uid={uid} onLeave={leave} />;
 
+  if (room.meta.status === 'playing') return <Game code={code} room={room} uid={uid} />;
+
   return (
-    <Notice title="Game in progress" onHome={leave}>
-      The game screen arrives in Phase 4.
+    <Notice title="Game over" onHome={leave}>
+      The game over screen arrives in Phase 5.
     </Notice>
   );
 }

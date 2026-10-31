@@ -29,15 +29,39 @@
         },
 
         "game": {
-          ".write": "auth != null && root.child('rooms').child($code).child('meta/hostId').val() === auth.uid"
+          ".write": "auth != null && root.child('rooms').child($code).child('meta/hostId').val() === auth.uid",
+          "calls": {
+            "$call": {
+              ".validate": "!data.exists() && $call.matches(/^c([0-9]|[1-6][0-9]|7[0-4])$/) && newData.hasChildren(['n', 'i', 'at'])",
+              "n": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 75" },
+              "i": { ".validate": "newData.isNumber() && 'c' + newData.val() === $call" },
+              "at": { ".validate": "newData.isNumber()" },
+              "$other": { ".validate": false }
+            }
+          }
+        },
+
+        "marks": {
+          "$uid": {
+            ".write": "auth != null && ((auth.uid === $uid && root.child('rooms').child($code).child('meta/status').val() === 'playing') || (!newData.exists() && root.child('rooms').child($code).child('meta/hostId').val() === auth.uid))",
+            "$cardId": {
+              ".validate": "root.child('rooms').child($code).child('claims').child($cardId).val() === $uid",
+              "$cell": {
+                ".validate": "$cell.matches(/^c([0-9]|1[0-9]|2[0-4])$/) && newData.hasChildren(['x', 'y'])",
+                "x": { ".validate": "newData.isNumber() && newData.val() >= -0.14 && newData.val() <= 0.14" },
+                "y": { ".validate": "newData.isNumber() && newData.val() >= -0.14 && newData.val() <= 0.14" },
+                "$other": { ".validate": false }
+              }
+            }
+          }
         },
 
         "players": {
           "$uid": {
             ".write": "auth != null && ((auth.uid === $uid && (data.exists() || newData.parent().parent().child('meta/status').val() === 'lobby')) || (!newData.exists() && root.child('rooms').child($code).child('meta/hostId').val() === auth.uid))",
             ".validate": "newData.hasChildren(['name', 'joinedAt'])",
-            "name": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 16" },
-            "avatarId": { ".validate": "newData.isString() && newData.val().length <= 48" },
+            "name": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 16 && (newData.val() === data.val() || root.child('rooms').child($code).child('meta/status').val() !== 'playing')" },
+            "avatarId": { ".validate": "newData.isString() && newData.val().length <= 48 && (newData.val() === data.val() || root.child('rooms').child($code).child('meta/status').val() !== 'playing')" },
             "color": { ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/)" },
             "mode": { ".validate": "newData.val() === 'beginner' || newData.val() === 'pro'" },
             "joinedAt": { ".validate": "newData.isNumber()" },

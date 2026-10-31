@@ -7,13 +7,15 @@ interface Props {
   /** Extra content drawn inside a square (markers, glow) — used by the game screen. */
   renderCellOverlay?: (n: number, row: number, col: number) => ReactNode;
   onCellTap?: (n: number, row: number, col: number) => void;
+  /** Extra classes per square (glow, shake). */
+  cellClassName?: (n: number, row: number, col: number) => string;
 }
 
 /**
  * One Bingo card. Sizes itself to its container's width (container query units),
  * so the same component works as a big preview, a game card, or a thumbnail.
  */
-export default function BingoCardView({ card, className = '', renderCellOverlay, onCellTap }: Props) {
+export default function BingoCardView({ card, className = '', renderCellOverlay, onCellTap, cellClassName }: Props) {
   const { bg, text } = card.color;
   // Plain squares when the card isn't interactive (previews, thumbnails inside buttons).
   const Cell = onCellTap ? 'button' : 'div';
@@ -40,7 +42,7 @@ export default function BingoCardView({ card, className = '', renderCellOverlay,
                 key={i}
                 {...(onCellTap ? { type: 'button' as const, onClick: () => onCellTap(n, row, col) } : {})}
                 aria-label={free ? 'Free space' : String(n)}
-                className="relative grid aspect-square place-items-center rounded-[2cqw] bg-[#f1eee6] font-display text-[8.5cqw] leading-none font-extrabold text-[#1d1a2b] tabular-nums"
+                className={`relative grid aspect-square place-items-center rounded-[2cqw] bg-[#f1eee6] font-display text-[8.5cqw] leading-none font-extrabold text-[#1d1a2b] tabular-nums ${cellClassName?.(n, row, col) ?? ''}`}
               >
                 {free ? (
                   <span className="flex flex-col items-center" style={{ color: bg }}>

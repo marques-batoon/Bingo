@@ -34,10 +34,36 @@ export interface CardPick {
 
 export type Picks = Record<string, CardPick>;
 
+/** rooms/{code}/game/calls/{"c<index>"}: one called ball. */
+export interface Call {
+  n: number;
+  /** 0-based call order. */
+  i: number;
+  at: number;
+}
+
+/** rooms/{code}/game: written only by the host. */
+export interface GameState {
+  round: number;
+  startedAt: number;
+  calls?: Record<string, Call>;
+}
+
+/** Marker offset inside its square, as a fraction of the square's size. */
+export interface MarkPos {
+  x: number;
+  y: number;
+}
+
+/** rooms/{code}/marks/{playerId}/{cardId}/{"c<cell 0–24>"} */
+export type CardMarks = Record<string, MarkPos>;
+
 export interface Room {
   meta: RoomMeta;
   players?: Record<string, Player>;
   picks?: Record<string, Picks>;
+  game?: GameState;
+  marks?: Record<string, Record<string, CardMarks>>;
   /** claims/{cardId} = playerId */
   claims?: Record<string, string>;
 }

@@ -1,12 +1,7 @@
 import { motion } from 'framer-motion';
+import { BALL_STYLES } from '../lib/balls';
 
-const BALLS = [
-  { letter: 'B', from: '#4cc3ff', to: '#2f7bff' },
-  { letter: 'I', from: '#ff5d73', to: '#d8335a' },
-  { letter: 'N', from: '#f4f2ff', to: '#b9b3dd' },
-  { letter: 'G', from: '#3ee0a8', to: '#13a874' },
-  { letter: 'O', from: '#ffc94a', to: '#ff8a3d' },
-];
+const BALLS = Object.entries(BALL_STYLES).map(([letter, s]) => ({ letter, ...s }));
 
 export default function BingoBalls({ size = 52 }: { size?: number }) {
   return (
