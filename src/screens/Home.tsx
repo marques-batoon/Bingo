@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import BingoBalls from '../components/BingoBalls';
 import Button from '../components/Button';
@@ -58,7 +58,7 @@ export default function Home() {
           </span>
           <span className="mt-1 block text-sm font-bold tracking-[0.6em] text-muted">APP</span>
         </motion.h1>
-        <p className="mt-4 text-[15px] text-muted">Real-time Bingo with friends, right on your phone.</p>
+        <p className="mt-4 text-[15px] text-muted">Wow such a cool app this is amazing</p>
       </header>
 
       {!firebaseConfigured && (
@@ -148,6 +148,9 @@ export default function Home() {
           </svg>
           Support the app
         </a>
+        <Link to="/credits" className="mt-2 flex min-h-11 items-center justify-center text-xs text-faint active:text-muted">
+          Photo credits
+        </Link>
       </footer>
     </main>
   );

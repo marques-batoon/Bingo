@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import Credits from './screens/Credits';
 import Home from './screens/Home';
 import JoinLink from './screens/JoinLink';
 import RoomScreen from './screens/RoomScreen';
@@ -7,6 +8,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/credits" element={<Credits />} />
       <Route path="/join/:code" element={<JoinLink />} />
       <Route path="/room/:code" element={<RoomScreen />} />
       <Route path="*" element={<Navigate to="/" replace />} />
