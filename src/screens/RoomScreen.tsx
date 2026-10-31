@@ -89,6 +89,18 @@ export default function RoomScreen() {
     );
   }
 
+  if (!room.players?.[uid]) {
+    return room.meta.status === 'lobby' ? (
+      <Notice title="You were removed" onHome={leave} action={{ label: 'Rejoin room', run: () => location.reload() }}>
+        The host removed you from room <b className="tracking-widest text-fg">{code}</b>. You can rejoin while they're in the lobby.
+      </Notice>
+    ) : (
+      <Notice title="Game in progress" onHome={leave}>
+        You were removed from this game. You can rejoin when they're back in the lobby.
+      </Notice>
+    );
+  }
+
   if (room.meta.status === 'lobby') return <Lobby code={code} room={room} uid={uid} onLeave={leave} />;
 
   return (
@@ -98,13 +110,23 @@ export default function RoomScreen() {
   );
 }
 
-function Notice({ title, children, onHome }: { title: string; children: React.ReactNode; onHome: () => void }) {
+interface NoticeProps {
+  title: string;
+  children: React.ReactNode;
+  onHome: () => void;
+  action?: { label: string; run: () => void };
+}
+
+function Notice({ title, children, onHome, action }: NoticeProps) {
   return (
     <main className="page mx-auto grid w-full max-w-md place-items-center">
       <div className="w-full rounded-[var(--radius-card)] bg-ink-900/80 p-6 text-center ring-1 ring-white/[0.07]">
         <h1 className="font-display text-2xl font-extrabold">{title}</h1>
         <p className="mt-2 text-[15px] text-muted">{children}</p>
-        <Button className="mt-6 w-full" onClick={onHome}>Back to Home</Button>
+        {action && <Button className="mt-6 w-full" onClick={action.run}>{action.label}</Button>}
+        <Button variant={action ? 'secondary' : 'primary'} className={`${action ? 'mt-2' : 'mt-6'} w-full`} onClick={onHome}>
+          Back to Home
+        </Button>
       </div>
     </main>
   );

@@ -5,6 +5,13 @@
 [build.environment]
   NODE_VERSION = "22"
 
+# Avatar images you haven't added yet: answer 404 (the app shows a placeholder)
+# instead of the app's HTML. Files that exist are always served first.
+[[redirects]]
+  from = "/avatars/*"
+  to = "/404"
+  status = 404
+
 # Single-page app: send every route (e.g. /join/ABCD) to index.html.
 [[redirects]]
   from = "/*"

@@ -54,3 +54,28 @@ export function saveLastName(name: string) {
     // Ignore.
   }
 }
+
+const PREFS_KEY = 'marquesBingo.prefs';
+
+export interface ProfilePrefs {
+  avatarId?: string;
+  color?: string;
+  mode?: 'beginner' | 'pro';
+}
+
+/** Avatar, marker color and mode from this device's last game, used for new rooms. */
+export function loadPrefs(): ProfilePrefs {
+  try {
+    return JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}') as ProfilePrefs;
+  } catch {
+    return {};
+  }
+}
+
+export function savePrefs(changes: ProfilePrefs) {
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify({ ...loadPrefs(), ...changes }));
+  } catch {
+    // Ignore.
+  }
+}

@@ -280,7 +280,7 @@ function PickActions(props: {
         ) : (
           <span className="grid place-items-center text-sm font-semibold text-mint">✓ Confirmed</span>
         )}
-        <Button onClick={onRelease} disabled={busy}>Remove this card</Button>
+        <Button onClick={onRelease} disabled={busy}>Remove card</Button>
       </div>
     );
   }

@@ -9,18 +9,21 @@ import {
   update,
 } from 'firebase/database';
 import { ensureAuth, getDb } from './firebase';
+import { findAvatar } from './avatars';
+import { DEFAULT_MARKER, MARKER_COLORS } from './markers';
 import { randomRoomCode } from './roomCode';
-import type { Player, RoomMeta } from './types';
+import { loadPrefs, savePrefs } from './session';
+import type { Player, Room, RoomMeta } from './types';
 
 export const ROOM_TTL_MS = 24 * 60 * 60 * 1000;
-const DEFAULT_MARKER = '#ff5d73';
 
 function newPlayer(name: string): Omit<Player, 'joinedAt' | 'lastSeen'> & { joinedAt: object; lastSeen: object } {
+  const prefs = loadPrefs();
   return {
     name,
-    avatarId: '',
-    color: DEFAULT_MARKER,
-    mode: 'beginner',
+    avatarId: findAvatar(prefs.avatarId) ? prefs.avatarId! : '',
+    color: MARKER_COLORS.some(c => c.id === prefs.color) ? prefs.color! : DEFAULT_MARKER,
+    mode: prefs.mode === 'pro' ? 'pro' : 'beginner',
     joinedAt: serverTimestamp(),
     online: true,
     lastSeen: serverTimestamp(),
@@ -84,6 +87,8 @@ export async function joinRoom(code: string, name: string): Promise<JoinResult> 
 
 export async function updateMyPlayer(code: string, changes: Partial<Pick<Player, 'name' | 'avatarId' | 'color' | 'mode'>>) {
   const uid = await ensureAuth();
+  const { name: _name, ...prefs } = changes;
+  savePrefs(prefs);
   await update(ref(getDb(), `rooms/${code}/players/${uid}`), changes);
 }
 
@@ -104,4 +109,29 @@ export async function cleanupStaleRooms(limit = 25): Promise<number> {
     }
   }
   return removed;
+}
+
+/** Host: how many cards each player plays (1–8). Players with too many choose which to remove. */
+export async function setCardsPerPlayer(code: string, count: number) {
+  await update(ref(getDb(), `rooms/${code}/meta`), { cardsPerPlayer: Math.min(8, Math.max(1, count)) });
+}
+
+/** Host: removes a player from the lobby and releases their cards. */
+export async function removePlayer(code: string, room: Room, playerId: string) {
+  const changes: Record<string, null> = {
+    [`rooms/${code}/players/${playerId}`]: null,
+    [`rooms/${code}/picks/${playerId}`]: null,
+  };
+  for (const [cardId, owner] of Object.entries(room.claims ?? {})) {
+    if (owner === playerId) changes[`rooms/${code}/claims/${cardId}`] = null;
+  }
+  await update(ref(getDb()), changes);
+}
+
+/** Host: starts the game. Card picks and claims lock (see database.rules.json). */
+export async function startGame(code: string, round: number) {
+  await update(ref(getDb()), {
+    [`rooms/${code}/meta/status`]: 'playing',
+    [`rooms/${code}/game`]: { round, startedAt: serverTimestamp() },
+  });
 }

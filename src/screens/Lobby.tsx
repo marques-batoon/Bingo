@@ -3,13 +3,17 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Avatar from '../components/Avatar';
 import BingoCardView from '../components/BingoCardView';
 import Button from '../components/Button';
+import ConfirmDialog from '../components/ConfirmDialog';
+import AvatarPicker from '../components/settings/AvatarPicker';
+import MarkerPalette from '../components/settings/MarkerPalette';
+import ModeToggle from '../components/settings/ModeToggle';
 import { getCard } from '../lib/cards';
-import { pickProgress, sortedPickEntries } from '../lib/cardSelection';
+import { MAX_SLOTS, pickProgress, sortedPickEntries } from '../lib/cardSelection';
 import { NAME_MAX, cleanName } from '../lib/names';
 import { joinLink } from '../lib/roomCode';
-import { updateMyPlayer } from '../lib/rooms';
+import { removePlayer, setCardsPerPlayer, startGame, updateMyPlayer } from '../lib/rooms';
 import { saveLastName } from '../lib/session';
-import type { Room } from '../lib/types';
+import type { Player, Room } from '../lib/types';
 import CardPicker from './CardPicker';
 
 interface Props {
@@ -24,7 +28,19 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
   const players = Object.entries(room.players ?? {}).sort(([, a], [, b]) => (a.joinedAt ?? 0) - (b.joinedAt ?? 0));
   const me = room.players?.[uid];
   const [picking, setPicking] = useState(false);
+  const [removing, setRemoving] = useState<{ id: string; name: string } | null>(null);
+  const [starting, setStarting] = useState(false);
   const progressOf = (id: string) => pickProgress(room.picks?.[id], room.meta, room.claims, id);
+  const notReady = players.filter(([id]) => !progressOf(id).done).map(([, p]) => p.name);
+
+  async function onStart() {
+    setStarting(true);
+    try {
+      await startGame(code, room.meta.round);
+    } catch {
+      setStarting(false);
+    }
+  }
 
   return (
     <main className="page mx-auto flex w-full max-w-md flex-col gap-4">
@@ -41,9 +57,11 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
 
       <RoomCodeCard code={code} />
 
-      {me && <NameEditor code={code} name={me.name} />}
+      {me && <ProfileCard code={code} uid={uid} me={me} />}
 
       <MyCards room={room} uid={uid} onOpen={() => setPicking(true)} />
+
+      {isHost && <HostSettings code={code} count={room.meta.cardsPerPlayer} />}
 
       <section className="rounded-[var(--radius-card)] bg-ink-900/80 p-2 ring-1 ring-white/[0.07]">
         <h2 className="flex items-baseline justify-between px-3 pt-2 pb-1">
@@ -54,6 +72,7 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
           <AnimatePresence initial={false}>
             {players.map(([id, p]) => {
               const prog = progressOf(id);
+              const canRemove = isHost && id !== uid && !p.online;
               return (
                 <motion.li
                   key={id}
@@ -63,8 +82,8 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
                   exit={{ opacity: 0 }}
                   className="flex min-h-16 items-center gap-3 rounded-2xl px-3 py-2"
                 >
-                  <div className="relative">
-                    <Avatar name={p.name} seed={id} size={44} />
+                  <div className={`relative ${p.online ? '' : 'opacity-60'}`}>
+                    <Avatar name={p.name} avatarId={p.avatarId} seed={id} size={44} />
                     <span
                       className={`absolute -right-0.5 -bottom-0.5 size-3.5 rounded-full ring-[3px] ring-ink-900 ${p.online ? 'bg-mint' : 'bg-faint'}`}
                       title={p.online ? 'Online' : 'Away'}
@@ -83,15 +102,25 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
                       )}
                       {id === uid && <span>You</span>}
                       {!p.online && <span>Away</span>}
+                      {p.mode === 'pro' && <span className="font-semibold text-violet">Pro</span>}
                     </p>
                   </div>
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${
-                      prog.done ? 'bg-mint/15 text-mint' : 'bg-white/5 text-muted'
-                    }`}
-                  >
-                    {prog.confirmed}/{prog.needed} confirmed
-                  </span>
+                  {canRemove ? (
+                    <button
+                      onClick={() => setRemoving({ id, name: p.name })}
+                      className="min-h-11 rounded-full px-3 text-xs font-bold text-coral ring-1 ring-coral/30 active:bg-coral/10"
+                    >
+                      Remove
+                    </button>
+                  ) : (
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${
+                        prog.done ? 'bg-mint/15 text-mint' : prog.extra > 0 ? 'bg-coral/10 text-coral' : 'bg-white/5 text-muted'
+                      }`}
+                    >
+                      {prog.extra > 0 ? `${prog.extra} extra` : `${prog.confirmed}/${prog.needed} confirmed`}
+                    </span>
+                  )}
                 </motion.li>
               );
             })}
@@ -99,11 +128,16 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
         </ul>
       </section>
 
-      <div className="sticky bottom-0 mt-auto pt-2 pb-[max(env(safe-area-inset-bottom),0px)]">
+      <div className="sticky bottom-0 mt-auto bg-gradient-to-t from-ink-950 via-ink-950/90 to-transparent pt-4 pb-[max(env(safe-area-inset-bottom),0px)]">
         {isHost ? (
-          <Button className="w-full" disabled>
-            Start Game
-          </Button>
+          <>
+            <Button className="w-full" disabled={notReady.length > 0 || starting} onClick={onStart}>
+              {starting ? 'Starting…' : 'Start Game'}
+            </Button>
+            <p className="mt-2 min-h-4 truncate text-center text-xs text-muted">
+              {notReady.length > 0 ? `Waiting on cards: ${notReady.join(', ')}` : 'Everyone is ready!'}
+            </p>
+          </>
         ) : (
           <p className="rounded-2xl bg-ink-900/80 py-4 text-center text-sm text-muted ring-1 ring-white/[0.07]">
             Waiting for the host to start…
@@ -114,14 +148,98 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
       <AnimatePresence>
         {picking && <CardPicker code={code} uid={uid} room={room} onClose={() => setPicking(false)} />}
       </AnimatePresence>
+      <AnimatePresence>
+        {removing && (
+          <ConfirmDialog
+            title={`Remove ${removing.name}?`}
+            message="Their cards are released. They can rejoin with the room link while you're in the lobby."
+            confirmLabel="Remove"
+            onCancel={() => setRemoving(null)}
+            onConfirm={() => {
+              removePlayer(code, room, removing.id).catch(() => {});
+              setRemoving(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </main>
+  );
+}
+
+function ProfileCard({ code, uid, me }: { code: string; uid: string; me: Player }) {
+  const [choosingAvatar, setChoosingAvatar] = useState(false);
+  const save = (changes: Parameters<typeof updateMyPlayer>[1]) => updateMyPlayer(code, changes).catch(() => {});
+
+  return (
+    <section className="rounded-[var(--radius-card)] bg-ink-900/80 p-4 ring-1 ring-white/[0.07]">
+      <div className="flex items-center gap-3">
+        <button onClick={() => setChoosingAvatar(true)} className="relative shrink-0 rounded-full" aria-label="Change avatar">
+          <Avatar name={me.name} avatarId={me.avatarId} seed={uid} size={60} />
+          <span className="absolute -right-1 -bottom-1 grid size-6 place-items-center rounded-full bg-fg text-ink-950 ring-[3px] ring-ink-900">
+            <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={2.8} strokeLinecap="round" aria-hidden>
+              <path d="M4 20h4L19 9l-4-4L4 16v4z" />
+            </svg>
+          </span>
+        </button>
+        <NameEditor code={code} name={me.name} />
+      </div>
+
+      <h3 className="mt-5 mb-2 text-xs font-semibold tracking-wider text-muted uppercase">Marker color</h3>
+      <MarkerPalette value={me.color} onChange={color => save({ color })} />
+
+      <h3 className="mt-5 mb-2 text-xs font-semibold tracking-wider text-muted uppercase">Mode</h3>
+      <ModeToggle value={me.mode} onChange={mode => save({ mode })} />
+
+      <AnimatePresence>
+        {choosingAvatar && (
+          <AvatarPicker
+            name={me.name}
+            seed={uid}
+            value={me.avatarId}
+            onChange={avatarId => save({ avatarId })}
+            onClose={() => setChoosingAvatar(false)}
+          />
+        )}
+      </AnimatePresence>
+    </section>
+  );
+}
+
+function HostSettings({ code, count }: { code: string; count: number }) {
+  const set = (n: number) => setCardsPerPlayer(code, n).catch(() => {});
+  return (
+    <section className="flex items-center justify-between gap-3 rounded-[var(--radius-card)] bg-ink-900/80 p-4 ring-1 ring-gold/20">
+      <div>
+        <h2 className="font-display text-lg font-bold">Cards per player</h2>
+        <p className="text-xs text-muted">Host setting · 1 to {MAX_SLOTS}</p>
+      </div>
+      <div className="flex items-center gap-1 rounded-2xl bg-ink-800 p-1 ring-1 ring-white/10">
+        <button
+          onClick={() => set(count - 1)}
+          disabled={count <= 1}
+          aria-label="Fewer cards"
+          className="grid size-11 place-items-center rounded-xl text-2xl font-bold active:bg-white/10 disabled:text-faint"
+        >
+          −
+        </button>
+        <span className="w-8 text-center font-display text-2xl font-black tabular-nums" aria-live="polite">{count}</span>
+        <button
+          onClick={() => set(count + 1)}
+          disabled={count >= MAX_SLOTS}
+          aria-label="More cards"
+          className="grid size-11 place-items-center rounded-xl text-2xl font-bold active:bg-white/10 disabled:text-faint"
+        >
+          +
+        </button>
+      </div>
+    </section>
   );
 }
 
 function MyCards({ room, uid, onOpen }: { room: Room; uid: string; onOpen: () => void }) {
   const prog = pickProgress(room.picks?.[uid], room.meta, room.claims, uid);
   const held = sortedPickEntries(room.picks?.[uid]).filter(([, p]) => room.claims?.[p.cardId] === uid);
-  const label = prog.done ? 'Edit cards' : held.length ? 'Continue' : 'Choose cards';
+  const label = prog.done ? 'Edit cards' : prog.extra > 0 ? 'Remove extra' : held.length ? 'Continue' : 'Choose cards';
   return (
     <section className="rounded-[var(--radius-card)] bg-ink-900/80 p-4 ring-1 ring-white/[0.07]">
       <div className="flex items-center justify-between gap-3">
@@ -207,7 +325,7 @@ function NameEditor({ code, name }: { code: string; name: string }) {
   };
 
   return (
-    <label className="flex items-center gap-3 rounded-2xl bg-ink-900/80 px-4 py-2 ring-1 ring-white/[0.07]">
+    <label className="min-w-0 flex-1">
       <span className="text-xs font-semibold tracking-wider text-muted uppercase">Name</span>
       <input
         value={draft}
@@ -216,7 +334,7 @@ function NameEditor({ code, name }: { code: string; name: string }) {
         onBlur={commit}
         onKeyDown={e => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
         enterKeyHint="done"
-        className="h-11 min-w-0 flex-1 bg-transparent text-right text-[17px] font-semibold outline-none"
+        className="mt-1 h-11 w-full rounded-xl bg-ink-800 px-3 text-[17px] font-semibold ring-1 ring-white/10 outline-none focus:ring-2 focus:ring-gold/70"
       />
     </label>
   );

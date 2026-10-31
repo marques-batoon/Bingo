@@ -1,0 +1,570 @@
+{
+  "categories": [
+    {
+      "id": "disney",
+      "label": "Disney"
+    },
+    {
+      "id": "pokemon",
+      "label": "Pokémon"
+    },
+    {
+      "id": "filipino",
+      "label": "Filipino Stars"
+    },
+    {
+      "id": "hollywood",
+      "label": "Hollywood"
+    },
+    {
+      "id": "fruit",
+      "label": "Fruit"
+    },
+    {
+      "id": "vegetables",
+      "label": "Vegetables"
+    }
+  ],
+  "avatars": [
+    {
+      "id": "mickey-mouse",
+      "category": "disney",
+      "name": "Mickey Mouse",
+      "image": "/avatars/disney/mickey-mouse.webp"
+    },
+    {
+      "id": "minnie-mouse",
+      "category": "disney",
+      "name": "Minnie Mouse",
+      "image": "/avatars/disney/minnie-mouse.webp"
+    },
+    {
+      "id": "donald-duck",
+      "category": "disney",
+      "name": "Donald Duck",
+      "image": "/avatars/disney/donald-duck.webp"
+    },
+    {
+      "id": "goofy",
+      "category": "disney",
+      "name": "Goofy",
+      "image": "/avatars/disney/goofy.webp"
+    },
+    {
+      "id": "stitch",
+      "category": "disney",
+      "name": "Stitch",
+      "image": "/avatars/disney/stitch.webp"
+    },
+    {
+      "id": "elsa",
+      "category": "disney",
+      "name": "Elsa",
+      "image": "/avatars/disney/elsa.webp"
+    },
+    {
+      "id": "anna",
+      "category": "disney",
+      "name": "Anna",
+      "image": "/avatars/disney/anna.webp"
+    },
+    {
+      "id": "olaf",
+      "category": "disney",
+      "name": "Olaf",
+      "image": "/avatars/disney/olaf.webp"
+    },
+    {
+      "id": "moana",
+      "category": "disney",
+      "name": "Moana",
+      "image": "/avatars/disney/moana.webp"
+    },
+    {
+      "id": "simba",
+      "category": "disney",
+      "name": "Simba",
+      "image": "/avatars/disney/simba.webp"
+    },
+    {
+      "id": "ariel",
+      "category": "disney",
+      "name": "Ariel",
+      "image": "/avatars/disney/ariel.webp"
+    },
+    {
+      "id": "rapunzel",
+      "category": "disney",
+      "name": "Rapunzel",
+      "image": "/avatars/disney/rapunzel.webp"
+    },
+    {
+      "id": "buzz-lightyear",
+      "category": "disney",
+      "name": "Buzz Lightyear",
+      "image": "/avatars/disney/buzz-lightyear.webp"
+    },
+    {
+      "id": "woody",
+      "category": "disney",
+      "name": "Woody",
+      "image": "/avatars/disney/woody.webp"
+    },
+    {
+      "id": "winnie-the-pooh",
+      "category": "disney",
+      "name": "Winnie the Pooh",
+      "image": "/avatars/disney/winnie-the-pooh.webp"
+    },
+    {
+      "id": "pikachu",
+      "category": "pokemon",
+      "name": "Pikachu",
+      "image": "/avatars/pokemon/pikachu.webp"
+    },
+    {
+      "id": "eevee",
+      "category": "pokemon",
+      "name": "Eevee",
+      "image": "/avatars/pokemon/eevee.webp"
+    },
+    {
+      "id": "charizard",
+      "category": "pokemon",
+      "name": "Charizard",
+      "image": "/avatars/pokemon/charizard.webp"
+    },
+    {
+      "id": "bulbasaur",
+      "category": "pokemon",
+      "name": "Bulbasaur",
+      "image": "/avatars/pokemon/bulbasaur.webp"
+    },
+    {
+      "id": "squirtle",
+      "category": "pokemon",
+      "name": "Squirtle",
+      "image": "/avatars/pokemon/squirtle.webp"
+    },
+    {
+      "id": "charmander",
+      "category": "pokemon",
+      "name": "Charmander",
+      "image": "/avatars/pokemon/charmander.webp"
+    },
+    {
+      "id": "jigglypuff",
+      "category": "pokemon",
+      "name": "Jigglypuff",
+      "image": "/avatars/pokemon/jigglypuff.webp"
+    },
+    {
+      "id": "snorlax",
+      "category": "pokemon",
+      "name": "Snorlax",
+      "image": "/avatars/pokemon/snorlax.webp"
+    },
+    {
+      "id": "gengar",
+      "category": "pokemon",
+      "name": "Gengar",
+      "image": "/avatars/pokemon/gengar.webp"
+    },
+    {
+      "id": "mewtwo",
+      "category": "pokemon",
+      "name": "Mewtwo",
+      "image": "/avatars/pokemon/mewtwo.webp"
+    },
+    {
+      "id": "lucario",
+      "category": "pokemon",
+      "name": "Lucario",
+      "image": "/avatars/pokemon/lucario.webp"
+    },
+    {
+      "id": "psyduck",
+      "category": "pokemon",
+      "name": "Psyduck",
+      "image": "/avatars/pokemon/psyduck.webp"
+    },
+    {
+      "id": "togepi",
+      "category": "pokemon",
+      "name": "Togepi",
+      "image": "/avatars/pokemon/togepi.webp"
+    },
+    {
+      "id": "meowth",
+      "category": "pokemon",
+      "name": "Meowth",
+      "image": "/avatars/pokemon/meowth.webp"
+    },
+    {
+      "id": "greninja",
+      "category": "pokemon",
+      "name": "Greninja",
+      "image": "/avatars/pokemon/greninja.webp"
+    },
+    {
+      "id": "sarah-geronimo",
+      "category": "filipino",
+      "name": "Sarah Geronimo",
+      "image": "/avatars/filipino/sarah-geronimo.webp"
+    },
+    {
+      "id": "regine-velasquez",
+      "category": "filipino",
+      "name": "Regine Velasquez",
+      "image": "/avatars/filipino/regine-velasquez.webp"
+    },
+    {
+      "id": "lea-salonga",
+      "category": "filipino",
+      "name": "Lea Salonga",
+      "image": "/avatars/filipino/lea-salonga.webp"
+    },
+    {
+      "id": "kathryn-bernardo",
+      "category": "filipino",
+      "name": "Kathryn Bernardo",
+      "image": "/avatars/filipino/kathryn-bernardo.webp"
+    },
+    {
+      "id": "daniel-padilla",
+      "category": "filipino",
+      "name": "Daniel Padilla",
+      "image": "/avatars/filipino/daniel-padilla.webp"
+    },
+    {
+      "id": "vice-ganda",
+      "category": "filipino",
+      "name": "Vice Ganda",
+      "image": "/avatars/filipino/vice-ganda.webp"
+    },
+    {
+      "id": "coco-martin",
+      "category": "filipino",
+      "name": "Coco Martin",
+      "image": "/avatars/filipino/coco-martin.webp"
+    },
+    {
+      "id": "anne-curtis",
+      "category": "filipino",
+      "name": "Anne Curtis",
+      "image": "/avatars/filipino/anne-curtis.webp"
+    },
+    {
+      "id": "liza-soberano",
+      "category": "filipino",
+      "name": "Liza Soberano",
+      "image": "/avatars/filipino/liza-soberano.webp"
+    },
+    {
+      "id": "enrique-gil",
+      "category": "filipino",
+      "name": "Enrique Gil",
+      "image": "/avatars/filipino/enrique-gil.webp"
+    },
+    {
+      "id": "gary-valenciano",
+      "category": "filipino",
+      "name": "Gary Valenciano",
+      "image": "/avatars/filipino/gary-valenciano.webp"
+    },
+    {
+      "id": "nadine-lustre",
+      "category": "filipino",
+      "name": "Nadine Lustre",
+      "image": "/avatars/filipino/nadine-lustre.webp"
+    },
+    {
+      "id": "james-reid",
+      "category": "filipino",
+      "name": "James Reid",
+      "image": "/avatars/filipino/james-reid.webp"
+    },
+    {
+      "id": "piolo-pascual",
+      "category": "filipino",
+      "name": "Piolo Pascual",
+      "image": "/avatars/filipino/piolo-pascual.webp"
+    },
+    {
+      "id": "marian-rivera",
+      "category": "filipino",
+      "name": "Marian Rivera",
+      "image": "/avatars/filipino/marian-rivera.webp"
+    },
+    {
+      "id": "tom-hanks",
+      "category": "hollywood",
+      "name": "Tom Hanks",
+      "image": "/avatars/hollywood/tom-hanks.webp"
+    },
+    {
+      "id": "meryl-streep",
+      "category": "hollywood",
+      "name": "Meryl Streep",
+      "image": "/avatars/hollywood/meryl-streep.webp"
+    },
+    {
+      "id": "leonardo-dicaprio",
+      "category": "hollywood",
+      "name": "Leonardo DiCaprio",
+      "image": "/avatars/hollywood/leonardo-dicaprio.webp"
+    },
+    {
+      "id": "denzel-washington",
+      "category": "hollywood",
+      "name": "Denzel Washington",
+      "image": "/avatars/hollywood/denzel-washington.webp"
+    },
+    {
+      "id": "zendaya",
+      "category": "hollywood",
+      "name": "Zendaya",
+      "image": "/avatars/hollywood/zendaya.webp"
+    },
+    {
+      "id": "dwayne-johnson",
+      "category": "hollywood",
+      "name": "Dwayne Johnson",
+      "image": "/avatars/hollywood/dwayne-johnson.webp"
+    },
+    {
+      "id": "scarlett-johansson",
+      "category": "hollywood",
+      "name": "Scarlett Johansson",
+      "image": "/avatars/hollywood/scarlett-johansson.webp"
+    },
+    {
+      "id": "keanu-reeves",
+      "category": "hollywood",
+      "name": "Keanu Reeves",
+      "image": "/avatars/hollywood/keanu-reeves.webp"
+    },
+    {
+      "id": "margot-robbie",
+      "category": "hollywood",
+      "name": "Margot Robbie",
+      "image": "/avatars/hollywood/margot-robbie.webp"
+    },
+    {
+      "id": "will-smith",
+      "category": "hollywood",
+      "name": "Will Smith",
+      "image": "/avatars/hollywood/will-smith.webp"
+    },
+    {
+      "id": "julia-roberts",
+      "category": "hollywood",
+      "name": "Julia Roberts",
+      "image": "/avatars/hollywood/julia-roberts.webp"
+    },
+    {
+      "id": "ryan-reynolds",
+      "category": "hollywood",
+      "name": "Ryan Reynolds",
+      "image": "/avatars/hollywood/ryan-reynolds.webp"
+    },
+    {
+      "id": "morgan-freeman",
+      "category": "hollywood",
+      "name": "Morgan Freeman",
+      "image": "/avatars/hollywood/morgan-freeman.webp"
+    },
+    {
+      "id": "emma-stone",
+      "category": "hollywood",
+      "name": "Emma Stone",
+      "image": "/avatars/hollywood/emma-stone.webp"
+    },
+    {
+      "id": "tom-cruise",
+      "category": "hollywood",
+      "name": "Tom Cruise",
+      "image": "/avatars/hollywood/tom-cruise.webp"
+    },
+    {
+      "id": "apple",
+      "category": "fruit",
+      "name": "Apple",
+      "emoji": "🍎"
+    },
+    {
+      "id": "banana",
+      "category": "fruit",
+      "name": "Banana",
+      "emoji": "🍌"
+    },
+    {
+      "id": "grapes",
+      "category": "fruit",
+      "name": "Grapes",
+      "emoji": "🍇"
+    },
+    {
+      "id": "strawberry",
+      "category": "fruit",
+      "name": "Strawberry",
+      "emoji": "🍓"
+    },
+    {
+      "id": "watermelon",
+      "category": "fruit",
+      "name": "Watermelon",
+      "emoji": "🍉"
+    },
+    {
+      "id": "pineapple",
+      "category": "fruit",
+      "name": "Pineapple",
+      "emoji": "🍍"
+    },
+    {
+      "id": "mango",
+      "category": "fruit",
+      "name": "Mango",
+      "emoji": "🥭"
+    },
+    {
+      "id": "peach",
+      "category": "fruit",
+      "name": "Peach",
+      "emoji": "🍑"
+    },
+    {
+      "id": "cherries",
+      "category": "fruit",
+      "name": "Cherries",
+      "emoji": "🍒"
+    },
+    {
+      "id": "lemon",
+      "category": "fruit",
+      "name": "Lemon",
+      "emoji": "🍋"
+    },
+    {
+      "id": "orange",
+      "category": "fruit",
+      "name": "Orange",
+      "emoji": "🍊"
+    },
+    {
+      "id": "kiwi",
+      "category": "fruit",
+      "name": "Kiwi",
+      "emoji": "🥝"
+    },
+    {
+      "id": "pear",
+      "category": "fruit",
+      "name": "Pear",
+      "emoji": "🍐"
+    },
+    {
+      "id": "blueberries",
+      "category": "fruit",
+      "name": "Blueberries",
+      "emoji": "🫐"
+    },
+    {
+      "id": "coconut",
+      "category": "fruit",
+      "name": "Coconut",
+      "emoji": "🥥"
+    },
+    {
+      "id": "carrot",
+      "category": "vegetables",
+      "name": "Carrot",
+      "emoji": "🥕"
+    },
+    {
+      "id": "broccoli",
+      "category": "vegetables",
+      "name": "Broccoli",
+      "emoji": "🥦"
+    },
+    {
+      "id": "corn",
+      "category": "vegetables",
+      "name": "Corn",
+      "emoji": "🌽"
+    },
+    {
+      "id": "eggplant",
+      "category": "vegetables",
+      "name": "Eggplant",
+      "emoji": "🍆"
+    },
+    {
+      "id": "cucumber",
+      "category": "vegetables",
+      "name": "Cucumber",
+      "emoji": "🥒"
+    },
+    {
+      "id": "chili",
+      "category": "vegetables",
+      "name": "Chili",
+      "emoji": "🌶️"
+    },
+    {
+      "id": "bell-pepper",
+      "category": "vegetables",
+      "name": "Bell Pepper",
+      "emoji": "🫑"
+    },
+    {
+      "id": "potato",
+      "category": "vegetables",
+      "name": "Potato",
+      "emoji": "🥔"
+    },
+    {
+      "id": "onion",
+      "category": "vegetables",
+      "name": "Onion",
+      "emoji": "🧅"
+    },
+    {
+      "id": "garlic",
+      "category": "vegetables",
+      "name": "Garlic",
+      "emoji": "🧄"
+    },
+    {
+      "id": "tomato",
+      "category": "vegetables",
+      "name": "Tomato",
+      "emoji": "🍅"
+    },
+    {
+      "id": "bok-choy",
+      "category": "vegetables",
+      "name": "Bok Choy",
+      "emoji": "🥬"
+    },
+    {
+      "id": "mushroom",
+      "category": "vegetables",
+      "name": "Mushroom",
+      "emoji": "🍄"
+    },
+    {
+      "id": "peas",
+      "category": "vegetables",
+      "name": "Peas",
+      "emoji": "🫛"
+    },
+    {
+      "id": "sweet-potato",
+      "category": "vegetables",
+      "name": "Sweet Potato",
+      "emoji": "🍠"
+    }
+  ]
+}

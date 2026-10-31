@@ -142,6 +142,18 @@ If someone's phone locks or Safari reloads, reopening the site brings them back 
 
 ---
 
+## Adding your own avatar images
+
+The Disney, Pokémon, Filipino Stars and Hollywood avatars show initials until you add a picture. Fruit and Vegetables use emoji and need nothing.
+
+1. Find the avatar's `category` and `id` in `src/data/avatars.json` (for example `pokemon` and `pikachu`).
+2. Save a square `.webp` image (about 256×256) as `public/avatars/<category>/<id>.webp`, for example `public/avatars/pokemon/pikachu.webp`.
+3. Redeploy. The picture replaces the initials automatically.
+
+Only use images you have the rights to use. You can also rename avatars or swap in different people and characters by editing `avatars.json`; keep each category at 15.
+
+---
+
 ## Free-plan limits (good to know)
 
 - Firebase Spark: **100 simultaneous connections** across all rooms, 1 GB stored, 10 GB downloaded per month. A Bingo game uses very little, so this is plenty for friends and family games.
