@@ -8,6 +8,8 @@ Mobile-first, real-time multiplayer Bingo. Vite + React + TypeScript, Tailwind, 
 ```bash
 npm install
 npm run dev        # app
-npm run emulators  # local Firebase (set VITE_USE_EMULATOR=true in .env.local)
+npm run emulators  # local Firebase
+npm run dev:emulator  # app against the local emulators
 npm test           # unit tests
+npm run test:rules # security-rules tests (emulators running)
 ```

@@ -3,15 +3,19 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Button from '../components/Button';
 import ConfirmDialog from '../components/ConfirmDialog';
 import CardPager from '../components/game/CardPager';
+import ChatToasts from '../components/game/ChatToasts';
 import CurrentBall from '../components/game/CurrentBall';
 import GameCard from '../components/game/GameCard';
 import GameSettingsSheet from '../components/game/GameSettingsSheet';
 import HistorySheet from '../components/game/HistorySheet';
 import LayoutSheet from '../components/game/LayoutSheet';
+import QuickChatSheet from '../components/game/QuickChatSheet';
 import WinBanners from '../components/game/WinBanners';
 import WinOverlay from '../components/game/WinOverlay';
 import { hasBingo, isBlackout, type WinKind } from '../lib/bingo';
+import { CHAT_COOLDOWN_MS } from '../config/quickChat';
 import { FREE, cellAt, getCard } from '../lib/cards';
+import { sendQuickChat } from '../lib/chat';
 import { sortedPickEntries } from '../lib/cardSelection';
 import { BALL_COUNT } from '../lib/draw';
 import {
@@ -38,7 +42,7 @@ interface Props {
   uid: string;
 }
 
-type Panel = 'history' | 'layout' | 'settings' | null;
+type Panel = 'history' | 'layout' | 'settings' | 'chat' | null;
 
 export default function Game({ code, room, uid }: Props) {
   const isHost = room.meta.hostId === uid;
@@ -48,6 +52,7 @@ export default function Game({ code, room, uid }: Props) {
   const [panel, setPanel] = useState<Panel>(null);
   const [calling, setCalling] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
+  const [chatCooling, setChatCooling] = useState(false);
   const [claiming, setClaiming] = useState(false);
   /** Call count when the player tapped "Not yet"; the button comes back on the next call. */
   const [dismissedAt, setDismissedAt] = useState<number | null>(null);
@@ -114,6 +119,13 @@ export default function Game({ code, room, uid }: Props) {
   const nameOf = (id: string) => room.players?.[id]?.name ?? 'Someone';
   const hostPanel: 'bingo' | 'blackout' | null =
     mode === 'bingo' && bingoWinners.length ? 'bingo' : mode === 'blackout' && blackoutWinners.length ? 'blackout' : null;
+
+  function onChat(index: number) {
+    setPanel(null);
+    setChatCooling(true);
+    setTimeout(() => setChatCooling(false), CHAT_COOLDOWN_MS);
+    sendQuickChat(code, uid, index).catch(() => {});
+  }
 
   async function onCall() {
     if (calling) return;
@@ -205,9 +217,11 @@ export default function Game({ code, room, uid }: Props) {
         )}
       </AnimatePresence>
 
+      <ChatToasts code={code} players={room.players} />
+
       {/* Host controls */}
       {isHost && (
-        <div className="shrink-0 pt-2">
+        <div className="shrink-0">
           {hostPanel ? (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -241,13 +255,16 @@ export default function Game({ code, room, uid }: Props) {
       )}
 
       {/* Bottom bar */}
-      <nav className={`mt-2 grid shrink-0 gap-2 ${isHost ? 'grid-cols-3' : 'grid-cols-2'}`}>
+      <nav className={`mt-2 grid shrink-0 gap-2 ${isHost ? 'grid-cols-4' : 'grid-cols-3'}`}>
         <BarButton label="Layout" onClick={() => setPanel('layout')}>
           <path d="M4 5h7v14H4zM13 5h7v6h-7zM13 13h7v6h-7z" />
         </BarButton>
         <BarButton label="Settings" onClick={() => setPanel('settings')}>
           <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
           <path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z" />
+        </BarButton>
+        <BarButton label={chatCooling ? 'Wait…' : 'Chat'} onClick={() => setPanel('chat')} disabled={chatCooling}>
+          <path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z" />
         </BarButton>
         {isHost && (
           <BarButton label="End" onClick={() => setConfirmEnd(true)}>
@@ -280,6 +297,7 @@ export default function Game({ code, room, uid }: Props) {
       </AnimatePresence>
 
       <AnimatePresence>
+        {panel === 'chat' && <QuickChatSheet onSend={onChat} onClose={() => setPanel(null)} />}
         {panel === 'history' && <HistorySheet called={called.slice(0, revealedCount)} onClose={() => setPanel(null)} />}
         {panel === 'layout' && (
           <LayoutSheet cardCount={myCardIds.length} perPage={prefs.perPage} onChange={perPage => setPrefs({ perPage })} onClose={() => setPanel(null)} />
@@ -300,11 +318,13 @@ export default function Game({ code, room, uid }: Props) {
   );
 }
 
-function BarButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+function BarButton(props: { label: string; onClick: () => void; disabled?: boolean; children: React.ReactNode }) {
+  const { label, onClick, disabled, children } = props;
   return (
     <button
       onClick={onClick}
-      className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-ink-800 text-sm font-semibold text-muted ring-1 ring-white/10 active:bg-ink-700 active:text-fg"
+      disabled={disabled}
+      className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-2xl bg-ink-800 py-1 text-[11px] font-semibold text-muted ring-1 ring-white/10 active:bg-ink-700 active:text-fg disabled:opacity-50"
     >
       <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinejoin="round" aria-hidden>
         {children}

@@ -44,6 +44,11 @@ export interface PickProgress {
   done: boolean;
 }
 
+/** How many cards this player plays: the host's per-player choice, else the room default. */
+export function cardsFor(meta: RoomMeta, playerId: string): number {
+  return meta.cardCounts?.[playerId] ?? meta.cardsPerPlayer;
+}
+
 export function isPickCurrent(pick: CardPick, meta: RoomMeta, claims: Record<string, string> | undefined, playerId: string) {
   return pick.round === meta.round && claims?.[pick.cardId] === playerId;
 }
@@ -57,7 +62,7 @@ export function pickProgress(
   const list = Object.values(picks ?? {});
   const held = list.filter(p => claims?.[p.cardId] === playerId);
   const confirmed = held.filter(p => p.round === meta.round).length;
-  const needed = meta.cardsPerPlayer;
+  const needed = cardsFor(meta, playerId);
   const extra = Math.max(0, held.length - needed);
   return {
     confirmed: Math.min(confirmed, needed),

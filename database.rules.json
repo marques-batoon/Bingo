@@ -12,6 +12,29 @@
       }
     },
 
+    "roomChat": {
+      "$code": {
+        ".read": "auth != null && root.child('rooms').child($code).child('players').child(auth.uid).exists()",
+        ".write": "auth != null && data.exists() && !newData.exists() && !root.child('rooms').child($code).exists()",
+        "last": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && root.child('rooms').child($code).child('players').child(auth.uid).exists()",
+            ".validate": "newData.val() === now && (!data.exists() || now - data.val() >= 3000)"
+          }
+        },
+        "msgs": {
+          "$id": {
+            ".write": "auth != null && !data.exists() && newData.child('uid').val() === auth.uid && root.child('rooms').child($code).child('players').child(auth.uid).exists()",
+            ".validate": "newData.hasChildren(['uid', 'm', 'at']) && newData.child('at').val() === now && newData.parent().parent().child('last').child(auth.uid).val() === now",
+            "uid": { ".validate": "newData.isString()" },
+            "m": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 100 && newData.val() % 1 === 0" },
+            "at": { ".validate": "newData.isNumber()" },
+            "$other": { ".validate": false }
+          }
+        }
+      }
+    },
+
     "rooms": {
       "$code": {
         ".read": "auth != null",
@@ -25,6 +48,9 @@
           "status": { ".validate": "newData.val() === 'lobby' || newData.val() === 'playing' || newData.val() === 'over'" },
           "round": { ".validate": "newData.isNumber() && newData.val() >= 1" },
           "cardsPerPlayer": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 8" },
+          "cardCounts": {
+            "$uid": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 8 && newData.val() % 1 === 0" }
+          },
           "$other": { ".validate": false }
         },
 
@@ -88,7 +114,8 @@
             "mode": { ".validate": "newData.val() === 'beginner' || newData.val() === 'pro'" },
             "joinedAt": { ".validate": "newData.isNumber()" },
             "online": { ".validate": "newData.isBoolean()" },
-            "lastSeen": { ".validate": "newData.isNumber()" }
+            "lastSeen": { ".validate": "newData.isNumber()" },
+            "$other": { ".validate": false }
           }
         },
 

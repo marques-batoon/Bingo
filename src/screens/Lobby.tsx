@@ -4,14 +4,15 @@ import Avatar from '../components/Avatar';
 import BingoCardView from '../components/BingoCardView';
 import Button from '../components/Button';
 import ConfirmDialog from '../components/ConfirmDialog';
+import Sheet from '../components/Sheet';
 import AvatarPicker from '../components/settings/AvatarPicker';
 import MarkerPalette from '../components/settings/MarkerPalette';
 import ModeToggle from '../components/settings/ModeToggle';
 import { getCard } from '../lib/cards';
-import { MAX_SLOTS, pickProgress, sortedPickEntries } from '../lib/cardSelection';
+import { MAX_SLOTS, cardsFor, pickProgress, sortedPickEntries } from '../lib/cardSelection';
 import { NAME_MAX, cleanName } from '../lib/names';
 import { joinLink } from '../lib/roomCode';
-import { removePlayer, setCardsPerPlayer, startGame, updateMyPlayer } from '../lib/rooms';
+import { clearPlayerCardCount, removePlayer, setCardsPerPlayer, setPlayerCardCount, startGame, updateMyPlayer } from '../lib/rooms';
 import { saveLastName } from '../lib/session';
 import type { Player, Room } from '../lib/types';
 import CardPicker from './CardPicker';
@@ -29,6 +30,7 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
   const me = room.players?.[uid];
   const [picking, setPicking] = useState(false);
   const [removing, setRemoving] = useState<{ id: string; name: string } | null>(null);
+  const [editing, setEditing] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const progressOf = (id: string) => pickProgress(room.picks?.[id], room.meta, room.claims, id);
   const notReady = players.filter(([id]) => !progressOf(id).done).map(([, p]) => p.name);
@@ -61,7 +63,9 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
 
       <MyCards room={room} uid={uid} onOpen={() => setPicking(true)} />
 
-      {isHost && <HostSettings code={code} count={room.meta.cardsPerPlayer} />}
+      {isHost && (
+        <HostSettings code={code} count={room.meta.cardsPerPlayer} mixed={Object.keys(room.meta.cardCounts ?? {}).length > 0} />
+      )}
 
       <section className="rounded-[var(--radius-card)] bg-ink-900/80 p-2 ring-1 ring-white/[0.07]">
         <h2 className="flex items-baseline justify-between px-3 pt-2 pb-1">
@@ -72,7 +76,6 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
           <AnimatePresence initial={false}>
             {players.map(([id, p]) => {
               const prog = progressOf(id);
-              const canRemove = isHost && id !== uid && !p.online;
               return (
                 <motion.li
                   key={id}
@@ -105,22 +108,25 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
                       {p.mode === 'pro' && <span className="font-semibold text-violet">Pro</span>}
                     </p>
                   </div>
-                  {canRemove ? (
-                    <button
-                      onClick={() => setRemoving({ id, name: p.name })}
-                      className="min-h-11 rounded-full px-3 text-xs font-bold text-coral ring-1 ring-coral/30 active:bg-coral/10"
-                    >
-                      Remove
-                    </button>
-                  ) : (
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${
-                        prog.done ? 'bg-mint/15 text-mint' : prog.extra > 0 ? 'bg-coral/10 text-coral' : 'bg-white/5 text-muted'
-                      }`}
-                    >
-                      {prog.extra > 0 ? `${prog.extra} extra` : `${prog.confirmed}/${prog.needed} confirmed`}
-                    </span>
-                  )}
+                  {(() => {
+                    const pillColor = prog.done ? 'bg-mint/15 text-mint' : prog.extra > 0 ? 'bg-coral/10 text-coral' : 'bg-white/5 text-muted';
+                    const label = prog.extra > 0 ? `${prog.extra} extra` : `${prog.confirmed}/${prog.needed} confirmed`;
+                    // Host: tap a player's cards to change how many they play (or remove them if away).
+                    return isHost ? (
+                      <button
+                        onClick={() => setEditing(id)}
+                        aria-label={`${p.name}: ${label}. Change cards`}
+                        className={`flex min-h-11 items-center gap-1 rounded-full pr-2 pl-3 text-xs font-bold tabular-nums ring-1 ring-white/10 active:brightness-125 ${pillColor}`}
+                      >
+                        {label}
+                        <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" aria-hidden>
+                          <path d="M9 6l6 6-6 6" />
+                        </svg>
+                      </button>
+                    ) : (
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${pillColor}`}>{label}</span>
+                    );
+                  })()}
                 </motion.li>
               );
             })}
@@ -147,6 +153,21 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
 
       <AnimatePresence>
         {picking && <CardPicker code={code} uid={uid} room={room} onClose={() => setPicking(false)} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {editing && room.players?.[editing] && (
+          <PlayerCardsSheet
+            code={code}
+            room={room}
+            playerId={editing}
+            isSelf={editing === uid}
+            onRemove={() => {
+              setRemoving({ id: editing, name: room.players![editing].name });
+              setEditing(null);
+            }}
+            onClose={() => setEditing(null)}
+          />
+        )}
       </AnimatePresence>
       <AnimatePresence>
         {removing && (
@@ -205,33 +226,88 @@ function ProfileCard({ code, uid, me }: { code: string; uid: string; me: Player 
   );
 }
 
-function HostSettings({ code, count }: { code: string; count: number }) {
+function PlayerCardsSheet(props: {
+  code: string;
+  room: Room;
+  playerId: string;
+  isSelf: boolean;
+  onRemove: () => void;
+  onClose: () => void;
+}) {
+  const { code, room, playerId, isSelf, onRemove, onClose } = props;
+  const p = room.players![playerId];
+  const count = cardsFor(room.meta, playerId);
+  const custom = room.meta.cardCounts?.[playerId] !== undefined;
+  const set = (n: number) => setPlayerCardCount(code, playerId, n).catch(() => {});
+  return (
+    <Sheet title={isSelf ? 'Your cards' : `${p.name}'s cards`} onClose={onClose}>
+      <div className="px-5 pb-2">
+        <div className="flex items-center gap-3">
+          <Avatar name={p.name} avatarId={p.avatarId} seed={playerId} size={48} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-semibold">{p.name}</p>
+            <p className="text-xs text-muted">
+              {custom ? 'Custom for this player' : `Room default (${room.meta.cardsPerPlayer})`}
+            </p>
+          </div>
+          <Stepper value={count} onChange={set} label="cards" />
+        </div>
+        <p className="mt-3 text-xs text-muted">
+          If you lower it, {isSelf ? 'you choose' : 'they choose'} which cards to give back.
+        </p>
+        <div className="mt-4 flex flex-col gap-2">
+          {custom && (
+            <Button variant="secondary" onClick={() => clearPlayerCardCount(code, playerId).catch(() => {})}>
+              Use room default ({room.meta.cardsPerPlayer})
+            </Button>
+          )}
+          {!isSelf && !p.online && (
+            <button onClick={onRemove} className="min-h-12 rounded-2xl font-display text-[15px] font-bold text-coral active:bg-coral/10">
+              Remove {p.name} from the room
+            </button>
+          )}
+        </div>
+      </div>
+    </Sheet>
+  );
+}
+
+/** −/+ control with 44pt buttons. */
+function Stepper({ value, onChange, label }: { value: number; onChange: (n: number) => void; label: string }) {
+  return (
+    <div className="flex items-center gap-1 rounded-2xl bg-ink-800 p-1 ring-1 ring-white/10">
+      <button
+        onClick={() => onChange(value - 1)}
+        disabled={value <= 1}
+        aria-label={`Fewer ${label}`}
+        className="grid size-11 place-items-center rounded-xl text-2xl font-bold active:bg-white/10 disabled:text-faint"
+      >
+        −
+      </button>
+      <span className="w-8 text-center font-display text-2xl font-black tabular-nums" aria-live="polite">{value}</span>
+      <button
+        onClick={() => onChange(value + 1)}
+        disabled={value >= MAX_SLOTS}
+        aria-label={`More ${label}`}
+        className="grid size-11 place-items-center rounded-xl text-2xl font-bold active:bg-white/10 disabled:text-faint"
+      >
+        +
+      </button>
+    </div>
+  );
+}
+
+function HostSettings({ code, count, mixed }: { code: string; count: number; mixed: boolean }) {
   const set = (n: number) => setCardsPerPlayer(code, n).catch(() => {});
   return (
     <section className="flex items-center justify-between gap-3 rounded-[var(--radius-card)] bg-ink-900/80 p-4 ring-1 ring-gold/20">
       <div>
         <h2 className="font-display text-lg font-bold">Cards per player</h2>
-        <p className="text-xs text-muted">Host setting · 1 to {MAX_SLOTS}</p>
+        <p className="text-xs text-muted">
+          {mixed ? 'Some players are set differently. Changing this resets everyone.' : 'Sets everyone. Tap a player below to change just theirs.'}
+        </p>
       </div>
-      <div className="flex items-center gap-1 rounded-2xl bg-ink-800 p-1 ring-1 ring-white/10">
-        <button
-          onClick={() => set(count - 1)}
-          disabled={count <= 1}
-          aria-label="Fewer cards"
-          className="grid size-11 place-items-center rounded-xl text-2xl font-bold active:bg-white/10 disabled:text-faint"
-        >
-          −
-        </button>
-        <span className="w-8 text-center font-display text-2xl font-black tabular-nums" aria-live="polite">{count}</span>
-        <button
-          onClick={() => set(count + 1)}
-          disabled={count >= MAX_SLOTS}
-          aria-label="More cards"
-          className="grid size-11 place-items-center rounded-xl text-2xl font-bold active:bg-white/10 disabled:text-faint"
-        >
-          +
-        </button>
-      </div>
+      <Stepper value={count} onChange={set} label="cards for everyone" />
     </section>
   );
 }

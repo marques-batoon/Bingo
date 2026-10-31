@@ -40,7 +40,7 @@ The rules make sure players can only change their own data, only the host runs t
 3. Open `database.rules.json` from this project, copy all of it, and paste it into the editor.
 4. Click **Publish**.
 
-Do this again whenever `database.rules.json` changes in a later update.
+Do this again whenever `database.rules.json` changes in a later update. Firebase shows a red warning if something doesn't parse; nothing is published until it does.
 
 ## 5. Register the web app and get your config
 
@@ -82,19 +82,24 @@ Open the address it prints (usually <http://localhost:5173>).
 
 ### Testing without Firebase (local emulators)
 
-You can test everything offline with Firebase's emulators. They need Java installed.
+You can test everything offline with Firebase's emulators, without touching your real Firebase data. They need Java installed. Your `.env.local` can keep its real settings.
 
-1. In `.env.local`, set `VITE_USE_EMULATOR=true`.
-2. In one Terminal window:
+1. In one Terminal window:
 
    ```bash
    npm run emulators
    ```
 
-3. In a second Terminal window:
+2. In a second Terminal window:
 
    ```bash
-   npm run dev
+   npm run dev:emulator
+   ```
+
+   This uses `.env.emulator.local` (it contains `VITE_USE_EMULATOR=true`). Create it once if it's missing:
+
+   ```bash
+   echo "VITE_USE_EMULATOR=true" > .env.emulator.local
    ```
 
 The emulators load `database.rules.json` automatically. You can watch the data live at <http://localhost:4000/database>. Emulator data disappears when you stop them.
@@ -116,6 +121,22 @@ Every browser profile counts as one player (the anonymous sign-in is stored per 
 
 Create a room on one device, then join with the code (or the `/join/CODE` link) on the others.
 
+### Automated tests
+
+```bash
+npm test
+```
+
+Runs the unit tests: card uniqueness and column ranges, equal color counts, Bingo and Blackout detection, the draw never repeating, card-claim conflicts and layout math.
+
+With the emulators running (`npm run emulators` in another window):
+
+```bash
+npm run test:rules
+```
+
+Checks the security rules: only the host runs the game, players can only change their own data, two players can never hold the same card, cards lock when the game starts, and the chat cooldown. Run it after any change to `database.rules.json`.
+
 ## 9. Deploy to Netlify
 
 1. Push this project to a GitHub repository.
@@ -136,9 +157,15 @@ Create a room on one device, then join with the code (or the `/join/CODE` link) 
 1. Open your Netlify address and tap **Create Room**.
 2. Tap **Invite** in the lobby. On iPhone this opens the share sheet so you can text the link. Elsewhere it copies the link.
 3. Friends open the link (it looks like `https://marques-bingo.netlify.app/join/ABCD`), or open the site and type the 4-letter code.
-4. Tip for iPhone: in Safari, tap **Share → Add to Home Screen** to get an app icon.
+4. Tip for iPhone: in Safari, tap **Share → Add to Home Screen**. The app then opens full screen from its own icon, like a regular app.
 
 If someone's phone locks or Safari reloads, reopening the site brings them back to their room automatically.
+
+---
+
+## Changing the quick chat greetings
+
+Edit `src/config/quickChat.ts` and redeploy. Add new greetings at the **end** of the list (messages are sent by their position, so reordering would change what people on older versions of the page see). Keep each one short so it fits on one line.
 
 ---
 

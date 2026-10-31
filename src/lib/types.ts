@@ -8,7 +8,10 @@ export interface RoomMeta {
   status: RoomStatus;
   /** Goes up by one each time the host returns everyone to the lobby. */
   round: number;
+  /** Default number of cards for each player. */
   cardsPerPlayer: number;
+  /** Per-player overrides set by the host: playerId → card count. */
+  cardCounts?: Record<string, number>;
 }
 
 /** rooms/{code}/players/{playerId}: written only by that player. */

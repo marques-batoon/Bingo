@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CARD_COUNT, colorOf } from './cards';
-import { browseOrder, freeSlotKey, nextCandidate, pickProgress } from './cardSelection';
+import { browseOrder, cardsFor, freeSlotKey, nextCandidate, pickProgress } from './cardSelection';
 import type { RoomMeta } from './types';
 
 const meta = (over: Partial<RoomMeta> = {}): RoomMeta => ({
@@ -67,5 +67,26 @@ describe('pickProgress (claim conflicts)', () => {
   it('finds the first free slot', () => {
     expect(freeSlotKey(undefined)).toBe('s0');
     expect(freeSlotKey({ s0: { cardId: 1, round: 1 }, s2: { cardId: 2, round: 1 } })).toBe('s1');
+  });
+});
+
+describe('per-player card counts', () => {
+  it('uses the host override, else the room default', () => {
+    const m = meta({ cardsPerPlayer: 1, cardCounts: { ana: 3 } });
+    expect(cardsFor(m, 'ana')).toBe(3);
+    expect(cardsFor(m, 'ben')).toBe(1);
+  });
+
+  it('one player needs 3 while another needs 1', () => {
+    const m = meta({ cardsPerPlayer: 1, cardCounts: { ana: 3 } });
+    const claims = { 5: 'ana', 9: 'ben' };
+    expect(pickProgress({ s0: { cardId: 5, round: 2 } }, m, claims, 'ana')).toMatchObject({ confirmed: 1, needed: 3, done: false });
+    expect(pickProgress({ s0: { cardId: 9, round: 2 } }, m, claims, 'ben')).toMatchObject({ confirmed: 1, needed: 1, done: true });
+  });
+
+  it('flags extras when one player is lowered', () => {
+    const m = meta({ cardsPerPlayer: 3, cardCounts: { ana: 1 } });
+    const picks = { s0: { cardId: 5, round: 2 }, s1: { cardId: 6, round: 2 } };
+    expect(pickProgress(picks, m, { 5: 'ana', 6: 'ana' }, 'ana')).toMatchObject({ extra: 1, done: false });
   });
 });

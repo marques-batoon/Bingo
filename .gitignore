@@ -8,3 +8,4 @@ firebase-debug.log
 database-debug.log
 ui-debug.log
 .DS_Store
+*.local

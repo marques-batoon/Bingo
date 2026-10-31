@@ -103,6 +103,8 @@ export async function cleanupStaleRooms(limit = 25): Promise<number> {
   for (const code of codes) {
     try {
       await update(ref(db), { [`rooms/${code}`]: null, [`roomIndex/${code}`]: null });
+      // Chat after the room: its rule only allows deleting chat once the room is gone.
+      await update(ref(db), { [`roomChat/${code}`]: null }).catch(() => {});
       removed++;
     } catch {
       // Someone else may have just cleaned it up, or clocks disagree slightly. Try next time.
@@ -111,9 +113,24 @@ export async function cleanupStaleRooms(limit = 25): Promise<number> {
   return removed;
 }
 
-/** Host: how many cards each player plays (1–8). Players with too many choose which to remove. */
+const clampCount = (n: number) => Math.min(8, Math.max(1, n));
+
+/**
+ * Host: sets every player's card count (1–8), replacing any per-player choices.
+ * Players with too many choose which to remove.
+ */
 export async function setCardsPerPlayer(code: string, count: number) {
-  await update(ref(getDb(), `rooms/${code}/meta`), { cardsPerPlayer: Math.min(8, Math.max(1, count)) });
+  await update(ref(getDb(), `rooms/${code}/meta`), { cardsPerPlayer: clampCount(count), cardCounts: null });
+}
+
+/** Host: puts one player back on the room default. */
+export async function clearPlayerCardCount(code: string, playerId: string) {
+  await update(ref(getDb(), `rooms/${code}/meta/cardCounts`), { [playerId]: null });
+}
+
+/** Host: sets one player's card count (1–8). */
+export async function setPlayerCardCount(code: string, playerId: string, count: number) {
+  await update(ref(getDb(), `rooms/${code}/meta/cardCounts`), { [playerId]: clampCount(count) });
 }
 
 /** Host: removes a player from the lobby and releases their cards. */
@@ -121,6 +138,7 @@ export async function removePlayer(code: string, room: Room, playerId: string) {
   const changes: Record<string, null> = {
     [`rooms/${code}/players/${playerId}`]: null,
     [`rooms/${code}/picks/${playerId}`]: null,
+    [`rooms/${code}/meta/cardCounts/${playerId}`]: null,
   };
   for (const [cardId, owner] of Object.entries(room.claims ?? {})) {
     if (owner === playerId) changes[`rooms/${code}/claims/${cardId}`] = null;

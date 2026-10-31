@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import BingoCardView from '../components/BingoCardView';
 import Button from '../components/Button';
 import { CARD_COLORS, getCard, type CardColorId } from '../lib/cards';
-import { browseOrder, freeSlotKey, nextCandidate, pickProgress, sortedPickEntries } from '../lib/cardSelection';
+import { browseOrder, cardsFor, freeSlotKey, nextCandidate, pickProgress, sortedPickEntries } from '../lib/cardSelection';
 import { confirmCard, keepCard, releaseCard } from '../lib/claims';
 import type { CardPick, Room } from '../lib/types';
 
@@ -22,7 +22,8 @@ export default function CardPicker({ code, uid, room, onClose }: Props) {
   const progress = pickProgress(myPicks, meta, claims, uid);
   // Only picks this player still holds; a lost claim isn't shown as theirs.
   const held = sortedPickEntries(myPicks).filter(([, p]) => claims?.[p.cardId] === uid);
-  const emptyCount = Math.max(0, meta.cardsPerPlayer - held.length);
+  const myCount = cardsFor(meta, uid);
+  const emptyCount = Math.max(0, myCount - held.length);
 
   const order = useMemo(() => browseOrder(code, uid), [code, uid]);
   const [color, setColor] = useState<CardColorId | undefined>(undefined);
@@ -170,7 +171,7 @@ export default function CardPicker({ code, uid, room, onClose }: Props) {
 
         {progress.extra > 0 && (
           <p className="rounded-xl bg-coral/10 px-3 py-2 text-sm text-coral ring-1 ring-coral/30">
-            The host changed it to {meta.cardsPerPlayer} card{meta.cardsPerPlayer === 1 ? '' : 's'}. Choose {progress.extra} to remove.
+            The host changed you to {myCount} card{myCount === 1 ? '' : 's'}. Choose {progress.extra} to remove.
           </p>
         )}
 
