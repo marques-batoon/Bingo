@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+/* Design tokens. Use these (bg-ink-900, text-gold, font-display…) instead of raw colors. */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Outfit", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --color-ink-950: #0b0918;
+  --color-ink-900: #13102a;
+  --color-ink-800: #1c1838;
+  --color-ink-700: #2a2550;
+  --color-ink-600: #3b3570;
+  --color-ink-500: #5a5396;
+
+  --color-fg: #f4f2ff;
+  --color-muted: #a9a3cf;
+  --color-faint: #6f6a99;
+
+  --color-gold: #ffc94a;
+  --color-amber: #ff8a3d;
+  --color-coral: #ff5d73;
+  --color-mint: #3ee0a8;
+  --color-sky: #4cc3ff;
+  --color-violet: #9b7bff;
+
+  --radius-card: 1.25rem;
+  --shadow-lift: 0 10px 30px -12px rgb(0 0 0 / 0.6), 0 2px 6px -2px rgb(0 0 0 / 0.4);
+  --shadow-glow-gold: 0 8px 28px -8px rgb(255 201 74 / 0.55);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+html {
+  background: var(--color-ink-950);
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family: var(--font-sans);
+  color: var(--color-fg);
+  background:
+    radial-gradient(120% 60% at 50% -10%, rgb(155 123 255 / 0.22), transparent 60%),
+    radial-gradient(80% 50% at 110% 110%, rgb(255 93 115 / 0.14), transparent 60%),
+    var(--color-ink-950);
+  background-attachment: fixed;
+  /* No double-tap zoom, no grey tap flash, no rubber-band pull on the page. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+a,
+input {
+  touch-action: manipulation;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Safe-area aware page shell. */
+.page {
+  min-height: 100dvh;
+  padding-top: max(env(safe-area-inset-top), 1rem);
+  padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  padding-left: max(env(safe-area-inset-left), 1rem);
+  padding-right: max(env(safe-area-inset-right), 1rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

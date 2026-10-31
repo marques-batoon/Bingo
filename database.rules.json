@@ -1,0 +1,58 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "roomIndex": {
+      ".read": "auth != null",
+      ".indexOn": ".value",
+      "$code": {
+        ".write": "auth != null && ((!data.exists() && newData.exists()) || (data.exists() && !newData.exists() && data.val() < now - 86400000))",
+        ".validate": "newData.isNumber() && newData.val() <= now && $code.matches(/^[A-HJKMNP-Z2-9]{4}$/)"
+      }
+    },
+
+    "rooms": {
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null && data.exists() && !newData.exists() && data.child('meta/createdAt').val() < now - 86400000",
+
+        "meta": {
+          ".write": "auth != null && ((!data.exists() && newData.child('hostId').val() === auth.uid) || (data.exists() && data.child('hostId').val() === auth.uid))",
+          ".validate": "newData.hasChildren(['hostId', 'createdAt', 'status', 'round', 'cardsPerPlayer'])",
+          "hostId": { ".validate": "newData.isString() && (!data.exists() || newData.val() === data.val())" },
+          "createdAt": { ".validate": "newData.isNumber() && (!data.exists() || newData.val() === data.val())" },
+          "status": { ".validate": "newData.val() === 'lobby' || newData.val() === 'playing' || newData.val() === 'over'" },
+          "round": { ".validate": "newData.isNumber() && newData.val() >= 1" },
+          "cardsPerPlayer": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 8" },
+          "$other": { ".validate": false }
+        },
+
+        "game": {
+          ".write": "auth != null && root.child('rooms').child($code).child('meta/hostId').val() === auth.uid"
+        },
+
+        "players": {
+          "$uid": {
+            ".write": "auth != null && ((auth.uid === $uid && (data.exists() || newData.parent().parent().child('meta/status').val() === 'lobby')) || (!newData.exists() && root.child('rooms').child($code).child('meta/hostId').val() === auth.uid))",
+            ".validate": "newData.hasChildren(['name', 'joinedAt'])",
+            "name": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 16" },
+            "avatarId": { ".validate": "newData.isString() && newData.val().length <= 48" },
+            "color": { ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/)" },
+            "mode": { ".validate": "newData.val() === 'beginner' || newData.val() === 'pro'" },
+            "joinedAt": { ".validate": "newData.isNumber()" },
+            "online": { ".validate": "newData.isBoolean()" },
+            "lastSeen": { ".validate": "newData.isNumber()" }
+          }
+        },
+
+        "claims": {
+          "$cardId": {
+            ".write": "auth != null && root.child('rooms').child($code).child('meta/status').val() === 'lobby' && ((newData.val() === auth.uid && (!data.exists() || data.val() === auth.uid)) || (!newData.exists() && (data.val() === auth.uid || root.child('rooms').child($code).child('meta/hostId').val() === auth.uid)))",
+            ".validate": "newData.isString() && $cardId.matches(/^[0-9]{1,4}$/) && root.child('rooms').child($code).child('players').child(newData.val()).exists()"
+          }
+        }
+      }
+    }
+  }
+}
