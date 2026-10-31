@@ -1,7 +1,7 @@
 export const NAME_MAX = 16;
 
-const ADJECTIVES = ['Lucky', 'Sunny', 'Zippy', 'Cosmic', 'Jolly', 'Brave', 'Swift', 'Cheery', 'Mighty', 'Snappy', 'Witty', 'Bouncy'];
-const NOUNS = ['Mango', 'Otter', 'Comet', 'Panda', 'Tiger', 'Ube', 'Koala', 'Pepper', 'Falcon', 'Lemon', 'Gecko', 'Nova'];
+const ADJECTIVES = ['Lucky', 'Stinky', 'Zippy', 'Powerful', 'Fantastic', 'Brave', 'Yummy', 'Mister', 'Vinegar', 'Japanese', 'Di ko kaya', 'Winner'];
+const NOUNS = ['Mango', 'Kilikili', 'Chili', 'Kimiko', 'Fabro', 'Ube', 'Jace', 'Balut', 'Bombastic', 'Armpit', 'Flower', 'Otso Otso'];
 
 export function randomPlayerName(): string {
   const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)];
