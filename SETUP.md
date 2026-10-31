@@ -165,19 +165,7 @@ If someone's phone locks or Safari reloads, reopening the site brings them back 
 
 ## Changing the quick chat greetings
 
-Edit `src/config/quickChat.ts` and redeploy. Add new greetings at the **end** of the list (messages are sent by their position, so reordering would change what people on older versions of the page see). Keep each one short so it fits on one line.
-
----
-
-## Adding your own avatar images
-
-The Disney, Pokémon, Filipino Stars and Hollywood avatars show initials until you add a picture. Fruit and Vegetables use emoji and need nothing.
-
-1. Find the avatar's `category` and `id` in `src/data/avatars.json` (for example `pokemon` and `pikachu`).
-2. Save a square `.webp` image (about 256×256) as `public/avatars/<category>/<id>.webp`, for example `public/avatars/pokemon/pikachu.webp`.
-3. Redeploy. The picture replaces the initials automatically.
-
-Only use images you have the rights to use. You can also rename avatars or swap in different people and characters by editing `avatars.json`; keep each category at 15.
+Edit `src/config/quickChat.ts` and redeploy. It has two lists: `lobby` (shown in the lobby) and `game` (shown during a game). Add new greetings at the **end** of a list (messages are sent by their position, so reordering would change what people on older versions of the page see). Keep each one short so it fits on one line.
 
 ---
 

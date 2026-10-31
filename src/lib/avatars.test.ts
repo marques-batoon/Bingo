@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { AVATAR_CATEGORIES, AVATARS, avatarKey, avatarsIn, findAvatar } from './avatars';
 
 describe('avatar manifest', () => {
-  it('has 6 categories of 15', () => {
-    expect(AVATAR_CATEGORIES).toHaveLength(6);
+  it('has Fruit, Vegetables and Animals, 15 each', () => {
+    expect(AVATAR_CATEGORIES.map(c => c.id)).toEqual(['fruit', 'vegetables', 'animals']);
     for (const c of AVATAR_CATEGORIES) expect(avatarsIn(c.id)).toHaveLength(15);
   });
 
@@ -13,15 +13,13 @@ describe('avatar manifest', () => {
     for (const k of keys) expect(k.length).toBeLessThanOrEqual(48);
   });
 
-  it('gives each avatar an image path or an emoji', () => {
-    for (const a of AVATARS) {
-      if (a.image) expect(a.image).toBe(`/avatars/${a.category}/${a.id}.webp`);
-      else expect(a.emoji).toBeTruthy();
-    }
+  it('gives each avatar an emoji', () => {
+    for (const a of AVATARS) expect(a.emoji).toBeTruthy();
   });
 
   it('looks avatars up by key', () => {
-    expect(findAvatar('pokemon/pikachu')?.name).toBe('Pikachu');
-    expect(findAvatar('nope/x')).toBeUndefined();
+    expect(findAvatar('animals/panda')?.name).toBe('Panda');
+    // Avatars from removed categories fall back to initials.
+    expect(findAvatar('pokemon/pikachu')).toBeUndefined();
   });
 });

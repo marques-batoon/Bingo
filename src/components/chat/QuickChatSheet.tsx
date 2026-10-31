@@ -1,12 +1,13 @@
 import Sheet from '../Sheet';
-import { QUICK_CHAT } from '../../config/quickChat';
+import { QUICK_CHAT, type ChatPlace } from '../../config/quickChat';
 
 /** Pick a greeting to send to everyone. */
-export default function QuickChatSheet({ onSend, onClose }: { onSend: (index: number) => void; onClose: () => void }) {
+export default function QuickChatSheet(props: { place: ChatPlace; onSend: (index: number) => void; onClose: () => void }) {
+  const { place, onSend, onClose } = props;
   return (
     <Sheet title="Quick chat" onClose={onClose}>
       <div className="grid grid-cols-2 gap-2 overflow-y-auto px-5 pb-2">
-        {QUICK_CHAT.map((text, i) => (
+        {QUICK_CHAT[place].map((text, i) => (
           <button
             key={i}
             onClick={() => onSend(i)}

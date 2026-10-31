@@ -3,12 +3,16 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Avatar from '../components/Avatar';
 import BingoCardView from '../components/BingoCardView';
 import Button from '../components/Button';
+import ChatToasts from '../components/chat/ChatToasts';
+import QuickChatSheet from '../components/chat/QuickChatSheet';
 import ConfirmDialog from '../components/ConfirmDialog';
 import Sheet from '../components/Sheet';
 import AvatarPicker from '../components/settings/AvatarPicker';
 import MarkerPalette from '../components/settings/MarkerPalette';
 import ModeToggle from '../components/settings/ModeToggle';
+import { CHAT_COOLDOWN_MS } from '../config/quickChat';
 import { getCard } from '../lib/cards';
+import { sendQuickChat } from '../lib/chat';
 import { MAX_SLOTS, cardsFor, pickProgress, sortedPickEntries } from '../lib/cardSelection';
 import { NAME_MAX, cleanName } from '../lib/names';
 import { joinLink } from '../lib/roomCode';
@@ -32,6 +36,15 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
   const [removing, setRemoving] = useState<{ id: string; name: string } | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatCooling, setChatCooling] = useState(false);
+
+  function onChat(index: number) {
+    setChatOpen(false);
+    setChatCooling(true);
+    setTimeout(() => setChatCooling(false), CHAT_COOLDOWN_MS);
+    sendQuickChat(code, uid, 'lobby', index).catch(() => {});
+  }
   const progressOf = (id: string) => pickProgress(room.picks?.[id], room.meta, room.claims, id);
   const notReady = players.filter(([id]) => !progressOf(id).done).map(([, p]) => p.name);
 
@@ -135,21 +148,39 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
       </section>
 
       <div className="sticky bottom-0 mt-auto bg-gradient-to-t from-ink-950 via-ink-950/90 to-transparent pt-4 pb-[max(env(safe-area-inset-bottom),0px)]">
-        {isHost ? (
-          <>
-            <Button className="w-full" disabled={notReady.length > 0 || starting} onClick={onStart}>
+        {/* Greetings float just above this bar, over the scrolling lobby. */}
+        <ChatToasts code={code} place="lobby" players={room.players} className="absolute inset-x-0 bottom-full h-12" />
+        <div className="flex gap-2">
+          <button
+            onClick={() => setChatOpen(true)}
+            disabled={chatCooling}
+            aria-label={chatCooling ? 'Quick chat (wait a moment)' : 'Quick chat'}
+            className="grid size-12 shrink-0 place-items-center rounded-2xl bg-ink-800 text-muted ring-1 ring-white/10 active:bg-ink-700 active:text-fg disabled:opacity-50"
+          >
+            <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinejoin="round" aria-hidden>
+              <path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z" />
+            </svg>
+          </button>
+          {isHost ? (
+            <Button className="flex-1" disabled={notReady.length > 0 || starting} onClick={onStart}>
               {starting ? 'Starting…' : 'Start Game'}
             </Button>
-            <p className="mt-2 min-h-4 truncate text-center text-xs text-muted">
-              {notReady.length > 0 ? `Waiting on cards: ${notReady.join(', ')}` : 'Everyone is ready!'}
+          ) : (
+            <p className="grid flex-1 place-items-center rounded-2xl bg-ink-900/80 text-center text-sm text-muted ring-1 ring-white/[0.07]">
+              Waiting for the host to start…
             </p>
-          </>
-        ) : (
-          <p className="rounded-2xl bg-ink-900/80 py-4 text-center text-sm text-muted ring-1 ring-white/[0.07]">
-            Waiting for the host to start…
+          )}
+        </div>
+        {isHost && (
+          <p className="mt-2 min-h-4 truncate text-center text-xs text-muted">
+            {notReady.length > 0 ? `Waiting on cards: ${notReady.join(', ')}` : 'Everyone is ready!'}
           </p>
         )}
       </div>
+
+      <AnimatePresence>
+        {chatOpen && <QuickChatSheet place="lobby" onSend={onChat} onClose={() => setChatOpen(false)} />}
+      </AnimatePresence>
 
       <AnimatePresence>
         {picking && <CardPicker code={code} uid={uid} room={room} onClose={() => setPicking(false)} />}

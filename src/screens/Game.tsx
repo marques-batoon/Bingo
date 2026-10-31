@@ -3,13 +3,13 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Button from '../components/Button';
 import ConfirmDialog from '../components/ConfirmDialog';
 import CardPager from '../components/game/CardPager';
-import ChatToasts from '../components/game/ChatToasts';
+import ChatToasts from '../components/chat/ChatToasts';
 import CurrentBall from '../components/game/CurrentBall';
 import GameCard from '../components/game/GameCard';
 import GameSettingsSheet from '../components/game/GameSettingsSheet';
 import HistorySheet from '../components/game/HistorySheet';
 import LayoutSheet from '../components/game/LayoutSheet';
-import QuickChatSheet from '../components/game/QuickChatSheet';
+import QuickChatSheet from '../components/chat/QuickChatSheet';
 import WinBanners from '../components/game/WinBanners';
 import WinOverlay from '../components/game/WinOverlay';
 import { hasBingo, isBlackout, type WinKind } from '../lib/bingo';
@@ -124,7 +124,7 @@ export default function Game({ code, room, uid }: Props) {
     setPanel(null);
     setChatCooling(true);
     setTimeout(() => setChatCooling(false), CHAT_COOLDOWN_MS);
-    sendQuickChat(code, uid, index).catch(() => {});
+    sendQuickChat(code, uid, 'game', index).catch(() => {});
   }
 
   async function onCall() {
@@ -217,7 +217,7 @@ export default function Game({ code, room, uid }: Props) {
         )}
       </AnimatePresence>
 
-      <ChatToasts code={code} players={room.players} />
+      <ChatToasts code={code} place="game" players={room.players} />
 
       {/* Host controls */}
       {isHost && (
@@ -297,7 +297,7 @@ export default function Game({ code, room, uid }: Props) {
       </AnimatePresence>
 
       <AnimatePresence>
-        {panel === 'chat' && <QuickChatSheet onSend={onChat} onClose={() => setPanel(null)} />}
+        {panel === 'chat' && <QuickChatSheet place="game" onSend={onChat} onClose={() => setPanel(null)} />}
         {panel === 'history' && <HistorySheet called={called.slice(0, revealedCount)} onClose={() => setPanel(null)} />}
         {panel === 'layout' && (
           <LayoutSheet cardCount={myCardIds.length} perPage={prefs.perPage} onChange={perPage => setPrefs({ perPage })} onClose={() => setPanel(null)} />

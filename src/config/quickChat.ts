@@ -1,18 +1,34 @@
 /**
- * Quick chat greetings. Add new ones at the END of the list: messages are sent as
- * their position in this list, so reordering or removing entries changes what
- * older app versions show. Keep each under 40 characters. Up to 100 entries.
+ * Quick chat greetings: one list for the lobby, one for during the game.
+ * Messages are sent as their position in the list, so add new ones at the END
+ * (reordering changes what people on an older version of the page see).
+ * Keep each short enough to fit on one line. Up to 100 per list.
  */
-export const QUICK_CHAT = [
-  "I'm close to Bingo!",
-  'Only 1 more',
-  "That's a bad number!",
-  'You can do better than that!',
-  'Salamat Po!',
-  'No way!',
-  'Someone stinks',
-  'This app is so good!',
-];
+export type ChatPlace = 'lobby' | 'game';
 
-/** Seconds a player waits between messages (also enforced by the database rules). */
+export const QUICK_CHAT: Record<ChatPlace, string[]> = {
+  lobby: [
+    'Start the game!',
+    'Wow this app is so good!',
+    'I smell your kilikili',
+    'Play the move!',
+    'We should all donate to support this app!',
+    'Winner winner chicken dinner',
+    'All in baby',
+    "I'm winning this one!",
+    'Good luck everyone',
+  ],
+  game: [
+    'This app is so good!',
+    "I'm close to Bingo!",
+    'Just need 1 more',
+    "That's a bad number!",
+    'You can do better than that!',
+    'Salamat Po!',
+    'No way!',
+    'Someone stinks',
+  ],
+};
+
+/** Time a player waits between messages (also enforced by the database rules). */
 export const CHAT_COOLDOWN_MS = 3000;

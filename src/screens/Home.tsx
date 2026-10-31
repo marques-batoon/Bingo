@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import BingoBalls from '../components/BingoBalls';
 import Button from '../components/Button';
@@ -148,9 +148,6 @@ export default function Home() {
           </svg>
           Support the app
         </a>
-        <Link to="/credits" className="mt-2 flex min-h-11 items-center justify-center text-xs text-faint active:text-muted">
-          Photo credits
-        </Link>
       </footer>
     </main>
   );

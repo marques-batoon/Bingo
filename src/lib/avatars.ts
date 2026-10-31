@@ -4,10 +4,7 @@ export interface AvatarDef {
   id: string;
   category: string;
   name: string;
-  /** Your own image under public/avatars/<category>/<id>.webp (people/character categories). */
-  image?: string;
-  /** Fruit and Vegetables are emoji, complete out of the box. */
-  emoji?: string;
+  emoji: string;
 }
 
 export interface AvatarCategory {

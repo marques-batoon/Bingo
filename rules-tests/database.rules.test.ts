@@ -194,15 +194,16 @@ describe('marks and wins', () => {
 });
 
 describe('quick chat', () => {
-  const send = (uid: string, id: string, m = 0) =>
+  const send = (uid: string, id: string, m = 0, k: string = 'g') =>
     db(uid).ref().update({
-      [`roomChat/${CODE}/msgs/${id}`]: { uid, m, at: { '.sv': 'timestamp' } },
+      [`roomChat/${CODE}/msgs/${id}`]: { uid, k, m, at: { '.sv': 'timestamp' } },
       [`roomChat/${CODE}/last/${uid}`]: { '.sv': 'timestamp' },
     });
 
-  it('lets room members send greetings', async () => {
+  it('lets room members send lobby and game greetings', async () => {
     await seed();
-    await assertSucceeds(send(ANA, 'a1'));
+    await assertSucceeds(send(ANA, 'a1', 0, 'l'));
+    await assertSucceeds(send(BEN, 'b1', 2, 'g'));
     await assertSucceeds(db(BEN).ref(`roomChat/${CODE}`).once('value'));
   });
 
@@ -217,6 +218,7 @@ describe('quick chat', () => {
     await assertFails(send('stranger', 's1'));
     await assertFails(db(ANA).ref().update({ [`roomChat/${CODE}/msgs/x`]: { uid: BEN, m: 0, at: { '.sv': 'timestamp' } }, [`roomChat/${CODE}/last/${ANA}`]: { '.sv': 'timestamp' } }));
     await assertFails(send(BEN, 'b1', 1.5));
+    await assertFails(send(BEN, 'b2', 0, 'x'));
     await assertFails(db('stranger').ref(`roomChat/${CODE}`).once('value'));
   });
 });

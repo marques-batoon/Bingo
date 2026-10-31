@@ -27,6 +27,7 @@
             ".write": "auth != null && !data.exists() && newData.child('uid').val() === auth.uid && root.child('rooms').child($code).child('players').child(auth.uid).exists()",
             ".validate": "newData.hasChildren(['uid', 'm', 'at']) && newData.child('at').val() === now && newData.parent().parent().child('last').child(auth.uid).val() === now",
             "uid": { ".validate": "newData.isString()" },
+            "k": { ".validate": "newData.val() === 'l' || newData.val() === 'g'" },
             "m": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 100 && newData.val() % 1 === 0" },
             "at": { ".validate": "newData.isNumber()" },
             "$other": { ".validate": false }

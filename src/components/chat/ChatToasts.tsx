@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { onValue, ref } from 'firebase/database';
 import Avatar from '../Avatar';
-import { QUICK_CHAT } from '../../config/quickChat';
-import { listenQuickChat } from '../../lib/chat';
+import type { ChatPlace } from '../../config/quickChat';
+import { chatText, listenQuickChat, placeOf } from '../../lib/chat';
 import { getDb } from '../../lib/firebase';
 import type { Player } from '../../lib/types';
 
@@ -16,11 +16,20 @@ interface Toast {
   text: string;
 }
 
+interface Props {
+  code: string;
+  place: ChatPlace;
+  players: Record<string, Player> | undefined;
+  /** Extra classes for the container: where the stack sits on screen. */
+  className?: string;
+}
+
 /**
- * Quick chat messages as a small stack in a lane above the bottom controls, so
- * they never cover the cards. Newest in front; up to 3 visible; each fades after ~4s.
+ * Quick chat messages for this screen (lobby or game) as a small, semi-transparent
+ * stack: avatar, name and message. Newest in front, up to 3, each fades after ~4s.
+ * The container never takes taps, so it can't get in the way.
  */
-export default function ChatToasts({ code, players }: { code: string; players: Record<string, Player> | undefined }) {
+export default function ChatToasts({ code, place, players, className = 'relative h-12 shrink-0' }: Props) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const offset = useRef(0);
   const openedAt = useRef(Date.now());
@@ -30,18 +39,18 @@ export default function ChatToasts({ code, players }: { code: string; players: R
   useEffect(
     () =>
       listenQuickChat(code, (id, msg) => {
-        // Skip messages sent before this screen opened.
-        if (msg.at < openedAt.current + offset.current - 1500) return;
-        const text = QUICK_CHAT[msg.m];
+        // Skip messages sent before this screen opened, and ones meant for the other screen.
+        if (msg.at < openedAt.current + offset.current - 1500 || placeOf(msg) !== place) return;
+        const text = chatText(msg);
         if (!text) return;
         setToasts(t => [...t.filter(x => x.id !== id), { id, uid: msg.uid, text }].slice(-VISIBLE));
         setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), SHOW_MS);
       }),
-    [code],
+    [code, place],
   );
 
   return (
-    <div className="pointer-events-none relative h-12 shrink-0" aria-live="polite">
+    <div className={`pointer-events-none ${className}`} aria-live="polite">
       <AnimatePresence initial={false}>
         {toasts.map((t, i) => {
           const depth = toasts.length - 1 - i; // 0 = newest
@@ -50,10 +59,10 @@ export default function ChatToasts({ code, players }: { code: string; players: R
             <motion.div
               key={t.id}
               initial={{ opacity: 0, y: 24, scale: 0.9 }}
-              animate={{ opacity: depth === 0 ? 1 : 0.85, y: -depth * 9, scale: 1 - depth * 0.05 }}
+              animate={{ opacity: depth === 0 ? 0.88 : 0.6, y: -depth * 9, scale: 1 - depth * 0.05 }}
               exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.25 } }}
               transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-              className="absolute inset-x-0 bottom-1 mx-auto flex max-w-sm items-center gap-2 rounded-full bg-ink-700/95 py-1 pr-4 pl-1 shadow-[var(--shadow-lift)] ring-1 ring-white/10 backdrop-blur"
+              className="absolute inset-x-0 bottom-1 mx-auto flex max-w-sm items-center gap-2 rounded-full bg-ink-700/70 py-1 pr-4 pl-1 shadow-[var(--shadow-lift)] ring-1 ring-white/10 backdrop-blur-md"
               style={{ zIndex: VISIBLE - depth }}
             >
               <Avatar name={p?.name ?? '?'} avatarId={p?.avatarId} seed={t.uid} size={32} />
