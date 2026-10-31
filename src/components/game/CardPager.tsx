@@ -25,6 +25,9 @@ export default function CardPager<T>({ items, perPage, renderItem, itemKey, page
   useLayoutEffect(() => {
     const el = box.current;
     if (!el) return;
+    // Measure now so cards render on the first paint, then follow resizes/rotation.
+    const rect = el.getBoundingClientRect();
+    setSize({ w: rect.width, h: rect.height });
     const ro = new ResizeObserver(([entry]) => setSize({ w: entry.contentRect.width, h: entry.contentRect.height }));
     ro.observe(el);
     return () => ro.disconnect();

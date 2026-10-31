@@ -56,6 +56,28 @@
           }
         },
 
+        "bingos": {
+          "$uid": {
+            ".write": "auth != null && ((auth.uid === $uid && root.child('rooms').child($code).child('meta/status').val() === 'playing') || (!newData.exists() && root.child('rooms').child($code).child('meta/hostId').val() === auth.uid))",
+            ".validate": "newData.hasChildren(['cardId', 'i', 'at']) && root.child('rooms').child($code).child('claims').child(newData.child('cardId').val() + '').val() === $uid",
+            "cardId": { ".validate": "newData.isNumber()" },
+            "i": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 74" },
+            "at": { ".validate": "newData.isNumber()" },
+            "$other": { ".validate": false }
+          }
+        },
+
+        "blackouts": {
+          "$uid": {
+            ".write": "auth != null && ((auth.uid === $uid && root.child('rooms').child($code).child('meta/status').val() === 'playing') || (!newData.exists() && root.child('rooms').child($code).child('meta/hostId').val() === auth.uid))",
+            ".validate": "newData.hasChildren(['cardId', 'i', 'at']) && root.child('rooms').child($code).child('claims').child(newData.child('cardId').val() + '').val() === $uid",
+            "cardId": { ".validate": "newData.isNumber()" },
+            "i": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 74" },
+            "at": { ".validate": "newData.isNumber()" },
+            "$other": { ".validate": false }
+          }
+        },
+
         "players": {
           "$uid": {
             ".write": "auth != null && ((auth.uid === $uid && (data.exists() || newData.parent().parent().child('meta/status').val() === 'lobby')) || (!newData.exists() && root.child('rooms').child($code).child('meta/hostId').val() === auth.uid))",

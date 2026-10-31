@@ -42,11 +42,33 @@ export interface Call {
   at: number;
 }
 
+/** rooms/{code}/bingos/{playerId} and blackouts/{playerId}: a player's claim, tagged with the call index. */
+export interface WinClaim {
+  cardId: number;
+  /** Index of the latest call this player had seen when claiming. */
+  i: number;
+  at: number;
+}
+
+/** rooms/{code}/game/winners/{"<kind>_<playerId>"}: the host's verdict on a claim. */
+export interface WinnerEntry {
+  uid: string;
+  kind: 'bingo' | 'blackout';
+  cardId: number;
+  i: number;
+  ok: boolean;
+  /** "<cardId>:<i>" of the claim this verdict is for, so a new claim gets checked again. */
+  claimKey: string;
+}
+
 /** rooms/{code}/game: written only by the host. */
 export interface GameState {
   round: number;
   startedAt: number;
   calls?: Record<string, Call>;
+  /** 'blackout' once the host chooses Continue to Blackout. */
+  mode?: 'bingo' | 'blackout';
+  winners?: Record<string, WinnerEntry>;
 }
 
 /** Marker offset inside its square, as a fraction of the square's size. */
@@ -64,6 +86,8 @@ export interface Room {
   picks?: Record<string, Picks>;
   game?: GameState;
   marks?: Record<string, Record<string, CardMarks>>;
+  bingos?: Record<string, WinClaim>;
+  blackouts?: Record<string, WinClaim>;
   /** claims/{cardId} = playerId */
   claims?: Record<string, string>;
 }
