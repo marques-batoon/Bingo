@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Phones turned sideways: lay screens out in two columns. */
+@custom-variant short (@media (orientation: landscape) and (max-height: 540px));
+
 /* Design tokens. Use these (bg-ink-900, text-gold, font-display…) instead of raw colors. */
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;

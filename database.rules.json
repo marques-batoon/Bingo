@@ -46,6 +46,18 @@
           }
         },
 
+        "picks": {
+          "$uid": {
+            ".write": "auth != null && root.child('rooms').child($code).child('meta/status').val() === 'lobby' && (auth.uid === $uid || (!newData.exists() && root.child('rooms').child($code).child('meta/hostId').val() === auth.uid))",
+            "$slot": {
+              ".validate": "$slot.matches(/^s[0-7]$/) && newData.hasChildren(['cardId', 'round']) && root.child('rooms').child($code).child('claims').child(newData.child('cardId').val() + '').val() === $uid",
+              "cardId": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 3003" },
+              "round": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= root.child('rooms').child($code).child('meta/round').val()" },
+              "$other": { ".validate": false }
+            }
+          }
+        },
+
         "claims": {
           "$cardId": {
             ".write": "auth != null && root.child('rooms').child($code).child('meta/status').val() === 'lobby' && ((newData.val() === auth.uid && (!data.exists() || data.val() === auth.uid)) || (!newData.exists() && (data.val() === auth.uid || root.child('rooms').child($code).child('meta/hostId').val() === auth.uid)))",

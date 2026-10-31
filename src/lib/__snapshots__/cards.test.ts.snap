@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`card pool > is deterministic (same ID → same card) 1`] = `376722286`;

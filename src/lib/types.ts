@@ -22,9 +22,22 @@ export interface Player {
   lastSeen: number;
 }
 
+/**
+ * rooms/{code}/picks/{playerId}/{slotKey}: a card a player has confirmed.
+ * Slot keys are "s0"…"s7" (letters keep RTDB from turning them into arrays).
+ * A pick counts for this round only when `round` equals meta.round.
+ */
+export interface CardPick {
+  cardId: number;
+  round: number;
+}
+
+export type Picks = Record<string, CardPick>;
+
 export interface Room {
   meta: RoomMeta;
   players?: Record<string, Player>;
+  picks?: Record<string, Picks>;
   /** claims/{cardId} = playerId */
   claims?: Record<string, string>;
 }

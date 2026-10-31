@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Avatar from '../components/Avatar';
+import BingoCardView from '../components/BingoCardView';
 import Button from '../components/Button';
+import { getCard } from '../lib/cards';
+import { pickProgress, sortedPickEntries } from '../lib/cardSelection';
 import { NAME_MAX, cleanName } from '../lib/names';
 import { joinLink } from '../lib/roomCode';
 import { updateMyPlayer } from '../lib/rooms';
 import { saveLastName } from '../lib/session';
-import type { Player, Room } from '../lib/types';
+import type { Room } from '../lib/types';
+import CardPicker from './CardPicker';
 
 interface Props {
   code: string;
@@ -19,9 +23,8 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
   const isHost = room.meta.hostId === uid;
   const players = Object.entries(room.players ?? {}).sort(([, a], [, b]) => (a.joinedAt ?? 0) - (b.joinedAt ?? 0));
   const me = room.players?.[uid];
-  const cardsPer = room.meta.cardsPerPlayer;
-
-  const confirmedCount = (_p: Player) => 0; // Card picks arrive in Phase 2.
+  const [picking, setPicking] = useState(false);
+  const progressOf = (id: string) => pickProgress(room.picks?.[id], room.meta, room.claims, id);
 
   return (
     <main className="page mx-auto flex w-full max-w-md flex-col gap-4">
@@ -40,6 +43,8 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
 
       {me && <NameEditor code={code} name={me.name} />}
 
+      <MyCards room={room} uid={uid} onOpen={() => setPicking(true)} />
+
       <section className="rounded-[var(--radius-card)] bg-ink-900/80 p-2 ring-1 ring-white/[0.07]">
         <h2 className="flex items-baseline justify-between px-3 pt-2 pb-1">
           <span className="font-display text-lg font-bold">Players</span>
@@ -48,7 +53,7 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
         <ul>
           <AnimatePresence initial={false}>
             {players.map(([id, p]) => {
-              const done = confirmedCount(p);
+              const prog = progressOf(id);
               return (
                 <motion.li
                   key={id}
@@ -82,10 +87,10 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
                   </div>
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${
-                      done >= cardsPer ? 'bg-mint/15 text-mint' : 'bg-white/5 text-muted'
+                      prog.done ? 'bg-mint/15 text-mint' : 'bg-white/5 text-muted'
                     }`}
                   >
-                    {done}/{cardsPer} confirmed
+                    {prog.confirmed}/{prog.needed} confirmed
                   </span>
                 </motion.li>
               );
@@ -105,7 +110,47 @@ export default function Lobby({ code, room, uid, onLeave }: Props) {
           </p>
         )}
       </div>
+
+      <AnimatePresence>
+        {picking && <CardPicker code={code} uid={uid} room={room} onClose={() => setPicking(false)} />}
+      </AnimatePresence>
     </main>
+  );
+}
+
+function MyCards({ room, uid, onOpen }: { room: Room; uid: string; onOpen: () => void }) {
+  const prog = pickProgress(room.picks?.[uid], room.meta, room.claims, uid);
+  const held = sortedPickEntries(room.picks?.[uid]).filter(([, p]) => room.claims?.[p.cardId] === uid);
+  const label = prog.done ? 'Edit cards' : held.length ? 'Continue' : 'Choose cards';
+  return (
+    <section className="rounded-[var(--radius-card)] bg-ink-900/80 p-4 ring-1 ring-white/[0.07]">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="font-display text-lg font-bold">Your cards</h2>
+          <p className={`text-sm ${prog.done ? 'text-mint' : 'text-muted'}`}>
+            {prog.done
+              ? `All ${prog.needed} confirmed`
+              : prog.extra > 0
+                ? `Remove ${prog.extra} card${prog.extra === 1 ? '' : 's'}`
+                : prog.pendingKeep > 0
+                  ? `Keep or replace ${prog.pendingKeep} from last round`
+                  : `${prog.confirmed} of ${prog.needed} confirmed`}
+          </p>
+        </div>
+        <Button variant={prog.done ? 'secondary' : 'primary'} className="px-4 text-[15px]" onClick={onOpen}>
+          {label}
+        </Button>
+      </div>
+      {held.length > 0 && (
+        <button onClick={onOpen} className="mt-3 flex w-full gap-2 overflow-x-auto pb-1 [scrollbar-width:none]" aria-label="Edit cards">
+          {held.map(([slot, pick]) => (
+            <div key={slot} className={`w-[84px] shrink-0 ${pick.round === room.meta.round ? '' : 'opacity-50'}`}>
+              <BingoCardView card={getCard(pick.cardId)} />
+            </div>
+          ))}
+        </button>
+      )}
+    </section>
   );
 }
 
